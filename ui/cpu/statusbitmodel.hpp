@@ -3,6 +3,7 @@
 #include <QAbstractListModel>
 #include <QVector>
 #include "./cpu_globals.hpp"
+#include "sim/api2/trace/iterator.hpp"
 
 class CPU_EXPORT Flag {
 public:
@@ -32,7 +33,7 @@ public:
   void appendFlag(QSharedPointer<Flag> flag);
 
 public slots:
-  void onUpdateGUI();
+  void onUpdateGUI(sim::api2::trace::FrameIterator);
 
 protected: //  Role Names must be under protected
   QHash<int, QByteArray> roleNames() const override;

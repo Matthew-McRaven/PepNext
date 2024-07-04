@@ -4,6 +4,7 @@
 #include <QQmlEngine>
 #include <QVector>
 #include "./cpu_globals.hpp"
+#include "sim/api2/trace/iterator.hpp"
 
 struct RegisterFormatter;
 //  Read only class for change in Register values
@@ -27,7 +28,7 @@ public:
   void appendFormatters(QVector<QSharedPointer<RegisterFormatter>> formatters);
   Q_INVOKABLE qsizetype columnCharWidth(int column) const;
 public slots:
-  void onUpdateGUI();
+  void onUpdateGUI(sim::api2::trace::FrameIterator);
 
 private:
   uint32_t _cols = 0;
