@@ -253,6 +253,9 @@ Item {
                         TabButton {
                             text: qsTr(`Symbol Table: ${textSelector.currentText}`)
                         }
+                        TabButton {
+                            text: qsTr(`Breakpoint Viewer`)
+                        }
                     }
                     StackLayout {
                         Layout.fillWidth: true
@@ -270,6 +273,7 @@ Item {
                             model: textSelector.currentIndex
                                    === 0 ? project?.userSymbols : project?.osSymbols
                         }
+                        BreakpointViewer {}
                     }
                 }
             }
