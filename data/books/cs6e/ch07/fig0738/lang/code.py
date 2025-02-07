@@ -52,7 +52,7 @@ class OneArgInstr(ACode):
         return ""
 
     def generate_listing(self) -> str:
-        return f"{self.mnemonic}({self.arg.generate_code()})"
+        return f"{self.mnemonic}({self.arg.generate_listing()})"
 
 
 class TwoArgInstr(ACode):
@@ -76,9 +76,7 @@ class TwoArgInstr(ACode):
         return ""
 
     def generate_listing(self) -> str:
-        return (
-            f"{self.mnemonic}({self.arg1.generate_code()}, {self.arg2.generate_code()})"
-        )
+        return f"{self.mnemonic}({self.arg1.generate_listing()}, {self.arg2.generate_listing()})"
 
 
 class Error(ACode):
