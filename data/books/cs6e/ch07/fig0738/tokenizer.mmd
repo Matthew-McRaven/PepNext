@@ -1,0 +1,20 @@
+flowchart LR
+    Start -->|Space| Start((Start))
+    Start --> Newline(((Newline)))
+    Start -->|,| Addr?(("`Addressing<br/>Mode??`"))
+    Start -->|;| Comment(((Comment)))
+    Comment -->|Not \n|Comment
+    Addr? -->|"a-zA-Z"| Addr((("`Addressing<br/>Mode`")))
+    Start -->|"a-zA-Z"| Ident(((Identifier)))
+    Ident -->|"a-zA-Z0-0"|Ident
+    Ident -->|:|Symbol(((Symbol)))
+    Start -->|0|MaybeHex((("`Maybe<br/>Hex?`")))
+    MaybeHex -->|"xX"| HexPrefix((Hex Prefix))
+    MaybeHex -->|0-9| Decimal(((Decimal)))
+    Decimal --> |0-9| Decimal
+    Start -->|+-| MaybeSigned(("`Maybe<br\>Signed`"))
+    MaybeSigned-->|0-9|Decimal
+    HexPrefix -->|"a-fA-F0-9"| Hex(((Hex)))
+    Hex -->|"a-fA-F0-9"| Hex(((Hex)))
+    Start -->|"."| MaybeDot(("`Maybe Dot<br/>Command`"))
+    MaybeDot -->|a-zA-z| Dot((("`Dot<br/>Command`")))
