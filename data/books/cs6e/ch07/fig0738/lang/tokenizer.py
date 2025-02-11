@@ -1,7 +1,7 @@
 import os
 from enum import Enum
 from io import StringIO
-from typing import Tuple, Literal, Union, List
+from typing import Tuple, Literal, Union, List, TypeAlias
 
 from .tokens import Tokens
 
@@ -24,7 +24,7 @@ class Tokenizer:
             " ": Tokens.EMPTY,
         }
 
-    type TokenTuple = Union[
+    TokenTuple: TypeAlias = Union[
         Tuple[Literal[Tokens.INTEGER], int]
         | Tuple[Literal[Tokens.IDENTIFIER], str]
         | Tuple[Tokens, None]

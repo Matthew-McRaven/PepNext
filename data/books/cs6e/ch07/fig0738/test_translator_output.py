@@ -4,7 +4,8 @@ from lang.translator import Translator
 
 
 def build_output(oc_lines, list_lines):
-    return f"Object code:\n{'\n'.join(oc_lines)}\n\nProgram listing:\n{'\n'.join(list_lines)}\n"
+    n = "\n"  # Older version of python do not support f strings with backslashes
+    return f"Object code:{n}{n.join(oc_lines)}{2*n}Program listing:{n}{n.join(list_lines)}{n}"
 
 
 def test_end_only():
