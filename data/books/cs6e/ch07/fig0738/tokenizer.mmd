@@ -1,10 +1,9 @@
 flowchart LR
     Start -->|Space| Start((Start))
     Start --> Newline(((Newline)))
-    Start -->|,| Addr?((Addressing<br/>Mode??))
-    Start -->|;| Comment(((Comment)))
-    Comment -->|Not \n|Comment
-    Addr? -->|"a-zA-Z"| Addr(((Addressing<br/>Mode)))
+    Start -->|,| Comma(((Comma)))
+    Start -->|";"| Comment(((Comment)))
+    Comment -->|"Not n"|Comment
     Start -->|"a-zA-Z"| Ident(((Identifier)))
     Ident -->|"a-zA-Z0-0"|Ident
     Ident -->|:|Symbol(((Symbol)))
@@ -13,8 +12,26 @@ flowchart LR
     MaybeHex -->|0-9| Decimal(((Decimal)))
     Decimal --> |0-9| Decimal
     Start -->|+-| MaybeSigned((Maybe<br\>Signed))
-    MaybeSigned-->|0-9|Decimal
+    MaybeSigned -->|0-9|Decimal
     HexPrefix -->|"a-fA-F0-9"| Hex(((Hex)))
     Hex -->|"a-fA-F0-9"| Hex(((Hex)))
     Start -->|"."| MaybeDot((Maybe Dot<br/>Command))
     MaybeDot -->|a-zA-z| Dot(((Dot<br/>Command)))
+    Start -->|"'"| OpenSingleQuote((Open '))
+    OpenSingleQuote -->|"Not \\"| ExpectSingleQuote((Awaiting<br>Close '))
+    OpenSingleQuote -->|"\\"| SingleEscape((Expect<br/>Escape<br/>))
+    SingleEscape -->|"rtbn"|ExpectSingleQuote
+    SingleEscape -->|xX|ExpectHexCode0((Expecting<br/>Hexcode))
+    ExpectHexCode0 -->|a-fA-F0-9|ExpectHexCode1((Expecting<br/>Hexcode))
+    ExpectHexCode0 -->|'|CloseSingleQuote
+    ExpectHexCode1 -->|a-fA-F0-9|ExpectSingleQuote
+    ExpectSingleQuote-->|"'"| CloseSingleQuote(((Character<br/>Constant)))
+    Start -->|"&quot;"| OpenDoubleQuote(("Open &quot;"))
+    OpenDoubleQuote -->|"Not \\ or &quot;"| OpenDoubleQuote(("Awaiting<br>Close &quot;"))
+    OpenDoubleQuote -->|"&quot;"|StringConstant(((String<br/>Constant)))
+    OpenDoubleQuote -->|"\\"| DoubleEscape((Expect<br/>Escape<br/>Sequence))
+    DoubleEscape -->|"rtbn"|OpenDoubleQuote
+    DoubleEscape -->|xX|ExpectStringHexCode0((Expecting<br/>Hexcode))
+    ExpectStringHexCode0 -->|a-fA-F0-9|ExpectStringHexCode1((Expecting<br/>Hexcode))
+    ExpectStringHexCode0 -->|"&quot;"|StringConstant
+    ExpectStringHexCode1 -->|a-fA-F0-9|OpenDoubleQuote
