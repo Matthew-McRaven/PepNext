@@ -49,6 +49,9 @@ class SymbolEntry:
         else:
             return int(self.value)
 
+    def __str__(self):
+        return self.name
+
 
 class SymbolTable:
     def __init__(self):
