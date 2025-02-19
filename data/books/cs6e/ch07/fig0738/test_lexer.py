@@ -1,6 +1,6 @@
 from io import StringIO
 
-from lang.lexer import Lexer, Tokens
+from pep10.lexer import Lexer, Tokens
 
 
 def test_lexer_empty():

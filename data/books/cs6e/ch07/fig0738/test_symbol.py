@@ -1,6 +1,6 @@
 import pytest
 
-from lang.symbol import SymbolTable
+from pep10.symbol import SymbolTable
 
 
 # Referring to the same symbol in different places accesses the same underlying object.
