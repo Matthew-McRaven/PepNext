@@ -51,3 +51,42 @@ class InstructionType(Enum):
     def allows_addressing_mode(self, am: AddressingMode):
         mask = self.address_mask()
         return bool(mask & am.value)
+
+
+class Mnemonic:
+    def __init__(self, name: str, type: InstructionType, bit_pattern: int):
+        self.name = name
+        self.type = type
+        self.bit_pattern = bit_pattern
+
+    def to_byte(self, am: AddressingMode | None = None) -> int:
+        if self.type == InstructionType.U or self.type == InstructionType.R:
+            return self.bit_pattern
+        elif self.type == InstructionType.A_ix:
+            return self.bit_pattern | (0 if am is None else am.as_A())
+        else:
+            return self.bit_pattern | (0 if am is None else am.as_AAA())
+
+
+class Mnemonics(Enum):
+    RET = Mnemonic("RET", InstructionType.U, 0x01)
+    # SRET=2, MOVFLGA=3, MOVAFLG=4, MOVSPA=5, MOVASP=5
+    NOP = Mnemonic("NOP", InstructionType.U, 0x07)
+    NOTA = Mnemonic("NOTA", InstructionType.R, 0x18)
+    NOTX = Mnemonic("NOTX", InstructionType.R, 0x19)
+    # NEGr, ASLr, ASRr, ROLr, RORr
+
+    BR = Mnemonic("BR", InstructionType.A_ix, 0x24)
+    # BR(LE|LT|EQ|NE|GE|GT|V|C)
+    CALL = Mnemonic("CALL", InstructionType.A_ix, 0x36)
+    SCALL = Mnemonic("SCALL", InstructionType.A_ix, 0x38)
+    # (ADD|SUB)SP
+    ADDA = Mnemonic("ADDA", InstructionType.RAAA_all, 0x50)
+    ADDX = Mnemonic("ADDX", InstructionType.RAAA_all, 0x58)
+    # (SUB|AND|OR|XOR)r
+    CPBA = Mnemonic("CPBA", InstructionType.RAAA_all, 0xB0)
+    CPBX = Mnemonic("CPBX", InstructionType.RAAA_all, 0xB8)
+    # (CPW|LDW)r
+    STWA = Mnemonic("ADDA", InstructionType.RAAA_noi, 0xE0)
+    STWX = Mnemonic("ADDX", InstructionType.RAAA_noi, 0xE8)
+    # STBr

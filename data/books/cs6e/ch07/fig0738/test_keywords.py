@@ -1,6 +1,6 @@
 import pytest
 
-from pep10.keywords import AddressingMode, InstructionType
+from pep10.keywords import AddressingMode, InstructionType, Mnemonics
 
 
 def test_AAA_bit_patterns():
@@ -28,3 +28,19 @@ def test_type_masks():
     assert InstructionType.A_ix.allows_addressing_mode(AddressingMode.I)
     assert InstructionType.A_ix.allows_addressing_mode(AddressingMode.X)
     assert not InstructionType.A_ix.allows_addressing_mode(AddressingMode.D)
+
+
+def test_U_mnemonics():
+    assert Mnemonics.RET.value.bit_pattern == 0x1
+    assert Mnemonics.RET.value.to_byte() == 0x1
+
+
+def test_R_mnemonics():
+    assert Mnemonics.NOTA.value.bit_pattern == 0x18
+    assert Mnemonics.NOTA.value.to_byte() == 0x18
+
+
+def test_A_mnemonics():
+    assert Mnemonics.CALL.value.bit_pattern == 0x36
+    assert Mnemonics.CALL.value.to_byte(AddressingMode.I) == 0x36
+    assert Mnemonics.CALL.value.to_byte(AddressingMode.X) == 0x37
