@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Dict
 
 
 class AddressingMode(Enum):
@@ -53,43 +54,61 @@ class InstructionType(Enum):
         return bool(mask & am.value)
 
 
-class Mnemonic:
-    def __init__(self, name: str, type: InstructionType, bit_pattern: int):
-        self.name = name
-        self.type = type
-        self.bit_pattern = bit_pattern
-
-    def as_int(self, am: AddressingMode | None = None) -> int:
-        if self.type == InstructionType.U or self.type == InstructionType.R:
-            return self.bit_pattern
-        elif self.type == InstructionType.A_ix:
-            return self.bit_pattern | (0 if am is None else am.as_A())
-        else:
-            return self.bit_pattern | (0 if am is None else am.as_AAA())
-
-    def __str__(self):
-        return self.name
-
-
-class Mnemonics(Enum):
-    RET = Mnemonic("RET", InstructionType.U, 0x01)
-    # SRET=2, MOVFLGA=3, MOVAFLG=4, MOVSPA=5, MOVASP=5
-    NOP = Mnemonic("NOP", InstructionType.U, 0x07)
-    NOTA = Mnemonic("NOTA", InstructionType.R, 0x18)
-    NOTX = Mnemonic("NOTX", InstructionType.R, 0x19)
+MNEMONIC_INSTRUCTION_TYPES: Dict[str, InstructionType] = {
+    "RET": InstructionType.U,
+    # SRET, MOVFLGA, MOVAFLG, MOVSPA, MOVASP
+    "NOP": InstructionType.U,
+    "NOTA": InstructionType.R,
+    "NOTX": InstructionType.R,
     # NEGr, ASLr, ASRr, ROLr, RORr
-
-    BR = Mnemonic("BR", InstructionType.A_ix, 0x24)
+    "BR": InstructionType.A_ix,
     # BR(LE|LT|EQ|NE|GE|GT|V|C)
-    CALL = Mnemonic("CALL", InstructionType.A_ix, 0x36)
-    SCALL = Mnemonic("SCALL", InstructionType.A_ix, 0x38)
+    "CALL": InstructionType.A_ix,
+    "SCALL": InstructionType.AAA_all,
     # (ADD|SUB)SP
-    ADDA = Mnemonic("ADDA", InstructionType.RAAA_all, 0x50)
-    ADDX = Mnemonic("ADDX", InstructionType.RAAA_all, 0x58)
+    "ADDA": InstructionType.RAAA_all,
+    "ADDX": InstructionType.RAAA_all,
     # (SUB|AND|OR|XOR)r
-    CPBA = Mnemonic("CPBA", InstructionType.RAAA_all, 0xB0)
-    CPBX = Mnemonic("CPBX", InstructionType.RAAA_all, 0xB8)
+    "CPWA": InstructionType.RAAA_all,
+    "CPWX": InstructionType.RAAA_all,
     # (CPW|LDW)r
-    STWA = Mnemonic("ADDA", InstructionType.RAAA_noi, 0xE0)
-    STWX = Mnemonic("ADDX", InstructionType.RAAA_noi, 0xE8)
+    "STWA": InstructionType.RAAA_noi,
+    "STWX": InstructionType.RAAA_noi,
     # STBr
+}
+
+
+MNEMONIC_BITS: Dict[str, int] = {
+    "RET": 0x01,
+    # SRET, MOVFLGA, MOVAFLG, MOVSPA, MOVASP
+    "NOP": 0x07,
+    "NOTA": 0x018,
+    "NOTX": 0x19,
+    # NEGr, ASLr, ASRr, ROLr, RORr
+    "BR": 0x24,
+    # BR(LE|LT|EQ|NE|GE|GT|V|C)
+    "CALL": 0x36,
+    "SCALL": 0x38,
+    # (ADD|SUB)SP
+    "ADDA": 0x50,
+    "ADDX": 0x58,
+    # (SUB|AND|OR|XOR)r
+    "CPWA": 0xB0,
+    "CPWX": 0xB8,
+    # (CPW|LDW)r
+    "STWA": 0xE0,
+    "STWX": 0xE8,
+    # STBr
+}
+
+
+def mnemonic_bits(mnemonic: str, am: AddressingMode | None = None):
+    mnemonic = mnemonic.upper()
+    bit_pattern, type = MNEMONIC_BITS[mnemonic], MNEMONIC_INSTRUCTION_TYPES[mnemonic]
+
+    if type == InstructionType.U or type == InstructionType.R:
+        return bit_pattern
+    elif type == InstructionType.A_ix:
+        return bit_pattern | (0 if am is None else am.as_A())
+    else:
+        return bit_pattern | (0 if am is None else am.as_AAA())
