@@ -59,13 +59,16 @@ class Mnemonic:
         self.type = type
         self.bit_pattern = bit_pattern
 
-    def to_byte(self, am: AddressingMode | None = None) -> int:
+    def as_int(self, am: AddressingMode | None = None) -> int:
         if self.type == InstructionType.U or self.type == InstructionType.R:
             return self.bit_pattern
         elif self.type == InstructionType.A_ix:
             return self.bit_pattern | (0 if am is None else am.as_A())
         else:
             return self.bit_pattern | (0 if am is None else am.as_AAA())
+
+    def __str__(self):
+        return self.name
 
 
 class Mnemonics(Enum):

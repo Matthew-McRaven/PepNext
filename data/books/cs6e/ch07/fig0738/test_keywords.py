@@ -32,15 +32,15 @@ def test_type_masks():
 
 def test_U_mnemonics():
     assert Mnemonics.RET.value.bit_pattern == 0x1
-    assert Mnemonics.RET.value.to_byte() == 0x1
+    assert Mnemonics.RET.value.as_int() == 0x1
 
 
 def test_R_mnemonics():
     assert Mnemonics.NOTA.value.bit_pattern == 0x18
-    assert Mnemonics.NOTA.value.to_byte() == 0x18
+    assert Mnemonics.NOTA.value.as_int() == 0x18
 
 
 def test_A_mnemonics():
     assert Mnemonics.CALL.value.bit_pattern == 0x36
-    assert Mnemonics.CALL.value.to_byte(AddressingMode.I) == 0x36
-    assert Mnemonics.CALL.value.to_byte(AddressingMode.X) == 0x37
+    assert Mnemonics.CALL.value.as_int(AddressingMode.I) == 0x36
+    assert Mnemonics.CALL.value.as_int(AddressingMode.X) == 0x37
