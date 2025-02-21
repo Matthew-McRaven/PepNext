@@ -57,12 +57,12 @@ class SymbolTable:
     def __init__(self):
         self._table: Dict[str, SymbolEntry] = {}
 
-    def reference(self, name) -> SymbolEntry:
+    def reference(self, name: str) -> SymbolEntry:
         if name not in self._table:
             self._table[name] = SymbolEntry(name)
         return self._table[name]
 
-    def define(self, name) -> SymbolEntry:
+    def define(self, name: str) -> SymbolEntry:
         sym = self.reference(name)
         sym.definition_count += 1
         return sym
