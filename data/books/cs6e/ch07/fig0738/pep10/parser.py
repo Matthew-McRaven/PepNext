@@ -50,8 +50,7 @@ class Parser:
             self._buffer.append(next(self.lexer))
         except StopIteration:
             return None
-        finally:
-            return self._buffer[0]
+        return self._buffer[0]
 
     def skip_to_next_line(self):
         invalid, empty = (Tokens.INVALID, None), (Tokens.EMPTY, None)
