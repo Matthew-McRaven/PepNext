@@ -58,6 +58,7 @@ class UnaryNode:
         self, mn: str, sym: SymbolEntry | None = None, comment: str | None = None
     ):
         self.symbol_decl: SymbolEntry | None = sym
+        mn = mn.upper()
         assert mn in MNEMONIC_INSTRUCTION_TYPES
         self.mnemonic = mn
         self.comment: str | None = comment
@@ -67,17 +68,25 @@ class UnaryNode:
 
 
 class NonUnaryNode:
-    def __init__(self, mnemonic: str, am: AddressingMode, argument: ArgumentType):
-        self.symbol_decl: SymbolEntry | None = None
-        assert mnemonic in MNEMONIC_INSTRUCTION_TYPES
-        self.mnemonic = mnemonic
+    def __init__(
+        self,
+        mn: str,
+        argument: ArgumentType,
+        am: AddressingMode,
+        sym: SymbolEntry | None = None,
+        comment: str | None = None,
+    ):
+        self.symbol_decl: SymbolEntry | None = sym
+        mn = mn.upper()
+        assert mn in MNEMONIC_INSTRUCTION_TYPES
+        self.mnemonic = mn
         self.addressing_mode: AddressingMode = am
         self.argument: ArgumentType = argument
-        self.comment: str | None = None
+        self.comment: str | None = comment
 
     def source(self) -> str:
-        args = [str(self.argument), str(self.addressing_mode)]
-        return source(str(self.mnemonic.upper), args, self.symbol_decl, self.comment)
+        args = [str(self.argument), self.addressing_mode.name.lower()]
+        return source(self.mnemonic.upper(), args, self.symbol_decl, self.comment)
 
 
 class Listable(Protocol):
