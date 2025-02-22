@@ -1,6 +1,6 @@
 import io
 from collections import deque
-from typing import Union, cast
+from typing import Union, cast, List
 
 from pep10.arguments import ArgumentType, Hexadecimal, Decimal, Identifier
 from pep10.ir import (
@@ -24,10 +24,10 @@ from pep10.symbol import SymbolTable
 
 
 class Parser:
-    def __init__(self, buffer: io.StringIO):
+    def __init__(self, buffer: io.StringIO, symbol_table: SymbolTable | None = None):
         self.lexer = Lexer(buffer)
         self._buffer: deque[Lexer.TokenType] = deque()
-        self.symbol_table = SymbolTable()
+        self.symbol_table = symbol_table if symbol_table else SymbolTable()
 
     def __iter__(self):
         return self
@@ -148,3 +148,8 @@ class Parser:
         self.must_match(Tokens.EMPTY)
 
         return line
+
+
+def parse(text: str, symbol_table: SymbolTable | None = None) -> List[ParserIR]:
+    parser = Parser(io.StringIO(text + "\n"), symbol_table=symbol_table)
+    return [line for line in parser]
