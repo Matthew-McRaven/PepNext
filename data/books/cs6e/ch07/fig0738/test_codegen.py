@@ -1,6 +1,6 @@
 from pep10.arguments import Decimal
 from pep10.ir import UnaryIR, listing, NonUnaryIR
-from pep10.keywords import AddressingMode
+from pep10.mnemonics import AddressingMode
 from pep10.symbol import SymbolTable
 
 

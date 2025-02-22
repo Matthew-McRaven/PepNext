@@ -13,13 +13,13 @@ from pep10.ir import (
     ErrorNode,
     NonUnaryNode,
 )
-from pep10.keywords import (
-    MNEMONIC_INSTRUCTION_TYPES,
-    DEFAULT_ADDRESSING_MODE,
+from pep10.lexer import Lexer, Tokens
+from pep10.mnemonics import (
+    INSTRUCTION_TYPES,
     InstructionType,
     AddressingMode,
+    DEFAULT_ADDRESSING_MODES,
 )
-from pep10.lexer import Lexer, Tokens
 from pep10.symbol import SymbolTable
 
 
@@ -81,9 +81,9 @@ class Parser:
         if not (mn := self.may_match(Tokens.IDENTIFIER)):
             return None
         mn_str = cast(str, mn[1]).upper()
-        if mn_str not in MNEMONIC_INSTRUCTION_TYPES:
+        if mn_str not in INSTRUCTION_TYPES:
             return None
-        match MNEMONIC_INSTRUCTION_TYPES[mn_str]:
+        match INSTRUCTION_TYPES[mn_str]:
             case InstructionType.R | InstructionType.U:
                 return UnaryIR(mn_str)
         return None
@@ -92,9 +92,9 @@ class Parser:
         if not (mn := self.may_match(Tokens.IDENTIFIER)):
             return None
         mn_str = cast(str, mn[1]).upper()
-        if mn_str not in MNEMONIC_INSTRUCTION_TYPES:
+        if mn_str not in INSTRUCTION_TYPES:
             return None
-        match MNEMONIC_INSTRUCTION_TYPES[mn_str]:
+        match INSTRUCTION_TYPES[mn_str]:
             case InstructionType.R | InstructionType.U:
                 self._buffer.appendleft(mn)
                 return None
@@ -107,13 +107,13 @@ class Parser:
             addr_str = cast(str, self.must_match(Tokens.IDENTIFIER)[1]).upper()
             try:
                 addr = cast(AddressingMode, AddressingMode[addr_str])
-                if not MNEMONIC_INSTRUCTION_TYPES[mn_str].allows_addressing_mode(addr):
+                if not INSTRUCTION_TYPES[mn_str].allows_addressing_mode(addr):
                     raise SyntaxError()
             except KeyError:
                 raise SyntaxError()
             return NonUnaryIR(mn_str, argument, addr)
-        elif mn_str in DEFAULT_ADDRESSING_MODE:
-            return NonUnaryIR(mn_str, argument, DEFAULT_ADDRESSING_MODE[mn_str])
+        elif mn_str in DEFAULT_ADDRESSING_MODES:
+            return NonUnaryIR(mn_str, argument, DEFAULT_ADDRESSING_MODES[mn_str])
         raise SyntaxError()
 
     def directive(self):

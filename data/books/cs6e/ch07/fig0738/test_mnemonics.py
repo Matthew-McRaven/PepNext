@@ -1,6 +1,6 @@
 import pytest
 
-from pep10.keywords import AddressingMode, InstructionType, mnemonic_bits
+from pep10.mnemonics import AddressingMode, InstructionType, as_int
 
 
 def test_AAA_bit_patterns():
@@ -31,14 +31,14 @@ def test_type_masks():
 
 
 def test_U_mnemonics():
-    assert mnemonic_bits("RET") == 0x1
+    assert as_int("RET") == 0x1
 
 
 def test_R_mnemonics():
-    assert mnemonic_bits("NOTA") == 0x18
+    assert as_int("NOTA") == 0x18
 
 
 def test_A_mnemonics():
-    assert mnemonic_bits("call") == 0x36
-    assert mnemonic_bits("call", am=AddressingMode.I) == 0x36
-    assert mnemonic_bits("call", am=AddressingMode.X) == 0x37
+    assert as_int("call") == 0x36
+    assert as_int("call", am=AddressingMode.I) == 0x36
+    assert as_int("call", am=AddressingMode.X) == 0x37

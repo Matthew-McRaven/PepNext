@@ -3,7 +3,7 @@ from typing import cast
 
 from pep10.arguments import Decimal, Hexadecimal, Identifier
 from pep10.ir import UnaryIR, NonUnaryIR, CommentNode, EmptyNode, ErrorNode
-from pep10.keywords import AddressingMode
+from pep10.mnemonics import AddressingMode
 from pep10.parser import Parser
 
 

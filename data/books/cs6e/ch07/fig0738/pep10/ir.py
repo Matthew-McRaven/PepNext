@@ -2,7 +2,7 @@ import itertools
 from typing import List, Protocol
 
 from pep10.arguments import ArgumentType
-from pep10.keywords import MNEMONIC_INSTRUCTION_TYPES, AddressingMode, MNEMONIC_BITS
+from pep10.mnemonics import AddressingMode, INSTRUCTION_TYPES, BITS
 from pep10.symbol import SymbolEntry
 
 
@@ -59,7 +59,7 @@ class UnaryNode:
     ):
         self.symbol_decl: SymbolEntry | None = sym
         mn = mn.upper()
-        assert mn in MNEMONIC_INSTRUCTION_TYPES
+        assert mn in INSTRUCTION_TYPES
         self.mnemonic = mn
         self.comment: str | None = comment
 
@@ -78,7 +78,7 @@ class NonUnaryNode:
     ):
         self.symbol_decl: SymbolEntry | None = sym
         mn = mn.upper()
-        assert mn in MNEMONIC_INSTRUCTION_TYPES
+        assert mn in INSTRUCTION_TYPES
         self.mnemonic = mn
         self.addressing_mode: AddressingMode = am
         self.argument: ArgumentType = argument
@@ -116,7 +116,7 @@ class UnaryIR(UnaryNode):
         self.address: int | None = None
 
     def object_code(self) -> bytearray:
-        bits = MNEMONIC_BITS[self.mnemonic]
+        bits = BITS[self.mnemonic]
         return bytearray(bits.to_bytes(1))
 
     def __len__(self) -> int:
@@ -129,7 +129,7 @@ class NonUnaryIR(NonUnaryNode):
         self.address: int | None = None
 
     def object_code(self) -> bytearray:
-        bits = MNEMONIC_BITS[self.mnemonic]
+        bits = BITS[self.mnemonic]
         mn_bytes = bits.to_bytes(1, signed=False)
         arg_bytes = int(self.argument).to_bytes(2)
         return bytearray(mn_bytes + arg_bytes)

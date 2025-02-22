@@ -54,7 +54,7 @@ class InstructionType(Enum):
         return bool(mask & am.value)
 
 
-MNEMONIC_INSTRUCTION_TYPES: Dict[str, InstructionType] = {
+INSTRUCTION_TYPES: Dict[str, InstructionType] = {
     "RET": InstructionType.U,
     # SRET, MOVFLGA, MOVAFLG, MOVSPA, MOVASP
     "NOP": InstructionType.U,
@@ -77,14 +77,14 @@ MNEMONIC_INSTRUCTION_TYPES: Dict[str, InstructionType] = {
     # STBr
 }
 
-DEFAULT_ADDRESSING_MODE: Dict[str, AddressingMode] = {
+DEFAULT_ADDRESSING_MODES: Dict[str, AddressingMode] = {
     "BR": AddressingMode.I,
     # BR(LE|LT|EQ|NE|GE|GT|V|C)
     "CALL": AddressingMode.I,
 }
 
 
-MNEMONIC_BITS: Dict[str, int] = {
+BITS: Dict[str, int] = {
     "RET": 0x01,
     # SRET, MOVFLGA, MOVAFLG, MOVSPA, MOVASP
     "NOP": 0x07,
@@ -108,9 +108,9 @@ MNEMONIC_BITS: Dict[str, int] = {
 }
 
 
-def mnemonic_bits(mnemonic: str, am: AddressingMode | None = None):
+def as_int(mnemonic: str, am: AddressingMode | None = None) -> int:
     mnemonic = mnemonic.upper()
-    bit_pattern, type = MNEMONIC_BITS[mnemonic], MNEMONIC_INSTRUCTION_TYPES[mnemonic]
+    bit_pattern, type = BITS[mnemonic], INSTRUCTION_TYPES[mnemonic]
 
     if type == InstructionType.U or type == InstructionType.R:
         return bit_pattern
