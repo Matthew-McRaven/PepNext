@@ -2,11 +2,11 @@ import io
 from typing import cast
 
 from pep10.arguments import Decimal, Hexadecimal, Identifier
-from pep10.ir import UnaryIR, NonUnaryIR, CommentNode, EmptyNode
+from pep10.ir import UnaryIR, NonUnaryIR, CommentNode, EmptyNode, ErrorNode
 from pep10.parser import Parser
 
 
-def test_unary():
+def test_unary_pass():
     par = Parser(io.StringIO("RET \n"))
     item: UnaryIR = cast(UnaryIR, next(par))
     assert type(item) == UnaryIR
@@ -17,6 +17,16 @@ def test_unary():
     assert type(item) == UnaryIR
     assert item.mnemonic == "NOTA"
     assert str(item.symbol_decl) == "caT"
+
+
+def test_unary_fail():
+    par = Parser(io.StringIO("RETS \n"))
+    item: UnaryIR = cast(UnaryIR, next(par))
+    assert type(item) == ErrorNode
+
+    par = Parser(io.StringIO("RET ,\n"))
+    item = cast(UnaryIR, next(par))
+    assert type(item) == ErrorNode
 
 
 def test_nonunary():
@@ -45,8 +55,26 @@ def test_nonunary():
     assert arg.symbol.is_singly_defined()
 
 
+def test_nonunary_fail():
+    par = Parser(io.StringIO("ADDA 10\n"))
+    item: UnaryIR = cast(UnaryIR, next(par))
+    assert type(item) == ErrorNode
+
+    par = Parser(io.StringIO("ADDA 10 ,\n"))
+    item = cast(UnaryIR, next(par))
+    assert type(item) == ErrorNode
+
+    par = Parser(io.StringIO("ADDA 10,cat\n"))
+    item = cast(UnaryIR, next(par))
+    assert type(item) == ErrorNode
+
+    par = Parser(io.StringIO("ADDA cat:,sfx\n"))
+    item = cast(UnaryIR, next(par))
+    assert type(item) == ErrorNode
+
+
 def test_comment():
-    par = Parser(io.StringIO(";comment \n"))
+    par = Parser(io.StringIO("  ;comment \n"))
     item: CommentNode = cast(CommentNode, next(par))
     assert type(item) == CommentNode
     assert item.comment == "comment "

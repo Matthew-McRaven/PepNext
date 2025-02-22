@@ -101,10 +101,13 @@ class Parser:
         addr_mode = self.must_match(Tokens.IDENTIFIER)
         # Check that addressing mode is a valid string and is allowed for the current mnemonic
         addr_str = cast(str, addr_mode[1]).upper()
-        addr_enum = cast(AddressingMode, AddressingMode[addr_str])
-        if not MNEMONIC_INSTRUCTION_TYPES[mn_str].allows_addressing_mode(addr_enum):
-            raise SyntaxError()
-        return NonUnaryIR(mn_str, argument, addr_enum)
+        try:
+            addr_enum = cast(AddressingMode, AddressingMode[addr_str])
+            if not MNEMONIC_INSTRUCTION_TYPES[mn_str].allows_addressing_mode(addr_enum):
+                raise SyntaxError()
+            return NonUnaryIR(mn_str, argument, addr_enum)
+        except KeyError:
+            raise SyntaxError
 
     def directive(self):
         raise NotImplementedError()
