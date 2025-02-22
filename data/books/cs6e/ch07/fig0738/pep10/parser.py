@@ -13,7 +13,12 @@ from pep10.ir import (
     ErrorNode,
     NonUnaryNode,
 )
-from pep10.keywords import MNEMONIC_INSTRUCTION_TYPES, InstructionType, AddressingMode
+from pep10.keywords import (
+    MNEMONIC_INSTRUCTION_TYPES,
+    DEFAULT_ADDRESSING_MODE,
+    InstructionType,
+    AddressingMode,
+)
 from pep10.lexer import Lexer, Tokens
 from pep10.symbol import SymbolTable
 
@@ -97,17 +102,19 @@ class Parser:
             self._buffer.appendleft(mn)
             return None
 
-        self.must_match(Tokens.COMMA)
-        addr_mode = self.must_match(Tokens.IDENTIFIER)
-        # Check that addressing mode is a valid string and is allowed for the current mnemonic
-        addr_str = cast(str, addr_mode[1]).upper()
-        try:
-            addr_enum = cast(AddressingMode, AddressingMode[addr_str])
-            if not MNEMONIC_INSTRUCTION_TYPES[mn_str].allows_addressing_mode(addr_enum):
+        if self.may_match(Tokens.COMMA):
+            # Check that addressing mode is a valid string and is allowed for the current mnemonic
+            addr_str = cast(str, self.must_match(Tokens.IDENTIFIER)[1]).upper()
+            try:
+                addr = cast(AddressingMode, AddressingMode[addr_str])
+                if not MNEMONIC_INSTRUCTION_TYPES[mn_str].allows_addressing_mode(addr):
+                    raise SyntaxError()
+            except KeyError:
                 raise SyntaxError()
-            return NonUnaryIR(mn_str, argument, addr_enum)
-        except KeyError:
-            raise SyntaxError
+            return NonUnaryIR(mn_str, argument, addr)
+        elif mn_str in DEFAULT_ADDRESSING_MODE:
+            return NonUnaryIR(mn_str, argument, DEFAULT_ADDRESSING_MODE[mn_str])
+        raise SyntaxError()
 
     def directive(self):
         raise NotImplementedError()

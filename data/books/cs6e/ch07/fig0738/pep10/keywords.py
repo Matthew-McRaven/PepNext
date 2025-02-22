@@ -77,6 +77,12 @@ MNEMONIC_INSTRUCTION_TYPES: Dict[str, InstructionType] = {
     # STBr
 }
 
+DEFAULT_ADDRESSING_MODE: Dict[str, AddressingMode] = {
+    "BR": AddressingMode.I,
+    # BR(LE|LT|EQ|NE|GE|GT|V|C)
+    "CALL": AddressingMode.I,
+}
+
 
 MNEMONIC_BITS: Dict[str, int] = {
     "RET": 0x01,

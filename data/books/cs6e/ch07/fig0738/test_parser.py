@@ -3,6 +3,7 @@ from typing import cast
 
 from pep10.arguments import Decimal, Hexadecimal, Identifier
 from pep10.ir import UnaryIR, NonUnaryIR, CommentNode, EmptyNode, ErrorNode
+from pep10.keywords import AddressingMode
 from pep10.parser import Parser
 
 
@@ -21,12 +22,10 @@ def test_unary_pass():
 
 def test_unary_fail():
     par = Parser(io.StringIO("RETS \n"))
-    item: UnaryIR = cast(UnaryIR, next(par))
-    assert type(item) == ErrorNode
+    assert type(next(par)) == ErrorNode
 
     par = Parser(io.StringIO("RET ,\n"))
-    item = cast(UnaryIR, next(par))
-    assert type(item) == ErrorNode
+    assert type(next(par)) == ErrorNode
 
 
 def test_nonunary():
@@ -57,20 +56,27 @@ def test_nonunary():
 
 def test_nonunary_fail():
     par = Parser(io.StringIO("ADDA 10\n"))
-    item: UnaryIR = cast(UnaryIR, next(par))
-    assert type(item) == ErrorNode
+    assert type(next(par)) == ErrorNode
 
     par = Parser(io.StringIO("ADDA 10 ,\n"))
-    item = cast(UnaryIR, next(par))
-    assert type(item) == ErrorNode
+    assert type(next(par)) == ErrorNode
 
     par = Parser(io.StringIO("ADDA 10,cat\n"))
-    item = cast(UnaryIR, next(par))
-    assert type(item) == ErrorNode
+    assert type(next(par)) == ErrorNode
 
     par = Parser(io.StringIO("ADDA cat:,sfx\n"))
-    item = cast(UnaryIR, next(par))
-    assert type(item) == ErrorNode
+    assert type(next(par)) == ErrorNode
+
+
+# @pytest.mark.skip(reason="Exercise for students")
+def test_nonunary_addr_optional():
+    par = Parser(io.StringIO("BR 10\n"))
+    item: NonUnaryIR = cast(NonUnaryIR, next(par))
+    assert type(item) == NonUnaryIR
+    assert item.mnemonic == "BR"
+    assert type(item.argument) == Decimal
+    assert int(item.argument) == 10
+    assert item.addressing_mode == AddressingMode.I
 
 
 def test_comment():
