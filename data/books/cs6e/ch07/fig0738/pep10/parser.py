@@ -112,6 +112,15 @@ class Parser:
             self._buffer.appendleft(mn)
             return None
 
+        if type(argument) == StringConstant and len(argument.value) > 2:
+            raise SyntaxError("String too large")
+        else:
+            as_int = int(argument)
+            try:
+                as_int.to_bytes(2, signed=as_int < 0)
+            except OverflowError:
+                raise SyntaxError("Number too large")
+
         if self.may_match(Tokens.COMMA):
             # Check that addressing mode is a valid string and is allowed for the current mnemonic
             addr_str = cast(str, self.must_match(Tokens.IDENTIFIER)[1]).upper()

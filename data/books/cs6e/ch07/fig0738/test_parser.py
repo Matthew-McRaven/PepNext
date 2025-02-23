@@ -107,6 +107,21 @@ def test_nonunary_addr_optional():
     assert item.addressing_mode == AddressingMode.I
 
 
+def test_nonunary_arg_range():
+    ret = parse("BR 65535\n")
+    assert type(ret[0]) != ErrorNode
+    ret = parse("BR 65536\n")
+    assert type(ret[0]) == ErrorNode
+    ret = parse("BR -32768\n")
+    assert type(ret[0]) != ErrorNode
+    ret = parse("BR -32769\n")
+    assert type(ret[0]) == ErrorNode
+    ret = parse("BR 0xFFFF\n")
+    assert type(ret[0]) != ErrorNode
+    ret = parse("BR 0x10000\n")
+    assert type(ret[0]) == ErrorNode
+
+
 def test_comment():
     par = Parser(io.StringIO("  ;comment \n"))
     item: CommentNode = cast(CommentNode, next(par))
