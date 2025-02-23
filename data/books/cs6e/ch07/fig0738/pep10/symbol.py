@@ -66,3 +66,9 @@ class SymbolTable:
         sym = self.reference(name)
         sym.definition_count += 1
         return sym
+
+    def __contains__(self, name: str) -> bool:
+        return name in self._table
+
+    def __getitem__(self, name: str):
+        return self._table[name]
