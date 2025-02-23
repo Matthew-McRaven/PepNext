@@ -90,3 +90,8 @@ def test_empty():
     par = Parser(io.StringIO("\n"))
     item: EmptyNode = cast(EmptyNode, next(par))
     assert type(item) == EmptyNode
+
+
+def test_parser_synchronization():
+    ret = parse("NOPN HELLO CRUEL: WORLD\nNOPN\nRET\n")
+    assert len(ret) == 3
