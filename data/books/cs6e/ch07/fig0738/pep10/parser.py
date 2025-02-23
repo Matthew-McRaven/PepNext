@@ -121,8 +121,8 @@ class Parser:
     def directive(self):
         raise NotImplementedError()
 
-    def code_line(self) -> ParserIR | None:
         line: ParserIR | None = None
+    def code_line(self) -> UnaryNode | NonUnaryNode | None:
         if nonunary := self.nonunary_instruction():
             line = nonunary
         elif unary := self.unary_instruction():

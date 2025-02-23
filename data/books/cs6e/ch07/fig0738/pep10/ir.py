@@ -17,8 +17,7 @@ def source(
     return f"{sym_str:7}{op:7}{','.join(args):12}{comment_str}"
 
 
-class ParserIR(Protocol):
-    symbol_decl: SymbolEntry | None
+class ParserTreeNode(Protocol):
     comment: str | None
 
     def source(self) -> str: ...
