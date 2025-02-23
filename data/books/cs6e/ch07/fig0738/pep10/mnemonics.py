@@ -110,11 +110,11 @@ BITS: Dict[str, int] = {
 
 def as_int(mnemonic: str, am: AddressingMode | None = None) -> int:
     mnemonic = mnemonic.upper()
-    bit_pattern, type = BITS[mnemonic], INSTRUCTION_TYPES[mnemonic]
+    bit_pattern, mn_type = BITS[mnemonic], INSTRUCTION_TYPES[mnemonic]
 
-    if type == InstructionType.U or type == InstructionType.R:
+    if mn_type == InstructionType.U or mn_type == InstructionType.R:
         return bit_pattern
-    elif type == InstructionType.A_ix:
+    elif mn_type == InstructionType.A_ix:
         return bit_pattern | (0 if am is None else am.as_A())
     else:
         return bit_pattern | (0 if am is None else am.as_AAA())
