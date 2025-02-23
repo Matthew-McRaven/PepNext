@@ -88,7 +88,7 @@ BITS: Dict[str, int] = {
     "RET": 0x01,
     # SRET, MOVFLGA, MOVAFLG, MOVSPA, MOVASP
     "NOP": 0x07,
-    "NOTA": 0x018,
+    "NOTA": 0x18,
     "NOTX": 0x19,
     # NEGr, ASLr, ASRr, ROLr, RORr
     "BR": 0x24,

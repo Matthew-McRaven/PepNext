@@ -1,8 +1,8 @@
 import itertools
-from typing import List, Protocol
+from typing import List, Protocol, runtime_checkable
 
 from pep10.arguments import ArgumentType
-from pep10.mnemonics import AddressingMode, INSTRUCTION_TYPES, BITS
+from pep10.mnemonics import AddressingMode, INSTRUCTION_TYPES, BITS, as_int
 from pep10.symbol import SymbolEntry
 
 
@@ -30,6 +30,7 @@ class ErrorNode:
     ):
         self.comment: str | None = None
         self.symbol_decl: SymbolEntry | None = None
+        self.address = 0
 
     def source(self) -> str:
         return ";Failed to parse line"
@@ -39,18 +40,32 @@ class EmptyNode:
     def __init__(self):
         self.comment: str | None = None
         self.symbol_decl: SymbolEntry | None = None
+        self.address: int | None = None
 
     def source(self) -> str:
         return source("", [], None, None)
+
+    def object_code(self) -> bytearray:
+        return bytearray()
+
+    def __len__(self) -> int:
+        return 0
 
 
 class CommentNode:
     def __init__(self, comment: str):
         self.comment: str | None = comment
         self.symbol_decl: SymbolEntry | None = None
+        self.address: int | None = None
 
     def source(self) -> str:
         return source("", [], None, self.comment)
+
+    def object_code(self) -> bytearray:
+        return bytearray()
+
+    def __len__(self) -> int:
+        return 0
 
 
 class UnaryNode:
@@ -89,6 +104,7 @@ class NonUnaryNode:
         return source(self.mnemonic.upper(), args, self.symbol_decl, self.comment)
 
 
+@runtime_checkable
 class Listable(Protocol):
     address: int | None
 
@@ -129,7 +145,7 @@ class NonUnaryIR(NonUnaryNode):
         self.address: int | None = None
 
     def object_code(self) -> bytearray:
-        bits = BITS[self.mnemonic]
+        bits = as_int(self.mnemonic, am=self.addressing_mode)
         mn_bytes = bits.to_bytes(1, signed=False)
         arg_bytes = int(self.argument).to_bytes(2)
         return bytearray(mn_bytes + arg_bytes)
