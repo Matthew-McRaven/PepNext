@@ -2,7 +2,15 @@ import io
 from typing import cast
 
 from pep10.arguments import Decimal, Hexadecimal, Identifier
-from pep10.ir import UnaryIR, NonUnaryIR, CommentNode, EmptyNode, ErrorNode
+from pep10.ir import (
+    UnaryIR,
+    NonUnaryIR,
+    CommentNode,
+    EmptyNode,
+    ErrorNode,
+    CommentIR,
+    EmptyIR,
+)
 from pep10.mnemonics import AddressingMode
 from pep10.parser import Parser, parse
 
@@ -82,14 +90,14 @@ def test_nonunary_addr_optional():
 def test_comment():
     par = Parser(io.StringIO("  ;comment \n"))
     item: CommentNode = cast(CommentNode, next(par))
-    assert type(item) == CommentNode
+    assert type(item) == CommentIR
     assert item.comment == "comment "
 
 
 def test_empty():
     par = Parser(io.StringIO("\n"))
     item: EmptyNode = cast(EmptyNode, next(par))
-    assert type(item) == EmptyNode
+    assert type(item) == EmptyIR
 
 
 def test_parser_synchronization():

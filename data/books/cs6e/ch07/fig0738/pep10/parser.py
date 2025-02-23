@@ -6,12 +6,12 @@ from pep10.arguments import ArgumentType, Hexadecimal, Decimal, Identifier
 from pep10.ir import (
     UnaryNode,
     NonUnaryIR,
-    ParserIR,
-    CommentNode,
     UnaryIR,
-    EmptyNode,
     ErrorNode,
     NonUnaryNode,
+    ParserTreeNode,
+    CommentIR,
+    EmptyIR,
 )
 from pep10.lexer import Lexer, Tokens
 from pep10.mnemonics import (
@@ -60,7 +60,7 @@ class Parser:
         if len(self._buffer) and self._buffer[0] == empty:
             self._buffer.popleft()
 
-    def __next__(self) -> ParserIR:
+    def __next__(self) -> ParserTreeNode:
         if self.peek() is None:
             raise StopIteration()
         try:
@@ -121,8 +121,8 @@ class Parser:
     def directive(self):
         raise NotImplementedError()
 
-        line: ParserIR | None = None
     def code_line(self) -> UnaryNode | NonUnaryNode | None:
+        line: ParserTreeNode | None = None
         if nonunary := self.nonunary_instruction():
             line = nonunary
         elif unary := self.unary_instruction():
@@ -134,12 +134,12 @@ class Parser:
             line.comment = cast(str, comment[1])
         return line
 
-    def statement(self) -> ParserIR:
-        line: ParserIR | None = None
+    def statement(self) -> ParserTreeNode:
+        line: ParserTreeNode | None = None
         if self.may_match(Tokens.EMPTY):
-            return EmptyNode()
+            return EmptyIR()
         elif comment := self.may_match(Tokens.COMMENT):
-            line = CommentNode(cast(str, comment[1]))
+            line = CommentIR(cast(str, comment[1]))
         elif (symbol := self.may_match(Tokens.SYMBOL)) and (code := self.code_line()):
             code.symbol_decl = self.symbol_table.define(cast(str, symbol[1]))
             line = code
@@ -153,7 +153,7 @@ class Parser:
         return line
 
 
-def parse(text: str, symbol_table: SymbolTable | None = None) -> List[ParserIR]:
+def parse(text: str, symbol_table: SymbolTable | None = None) -> List[ParserTreeNode]:
     # Remove trailing whitespace while insuring input is \n terminated.
     parser = Parser(io.StringIO(text.rstrip() + "\n"), symbol_table=symbol_table)
     return [line for line in parser]

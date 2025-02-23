@@ -26,8 +26,6 @@ class ParserTreeNode(Protocol):
 class ErrorNode:
     def __init__(self) -> None:
         self.comment: str | None = None
-        self.symbol_decl: SymbolEntry | None = None
-        self.address = 0
 
     def source(self) -> str:
         return ";Failed to parse line"
@@ -36,33 +34,17 @@ class ErrorNode:
 class EmptyNode:
     def __init__(self) -> None:
         self.comment: str | None = None
-        self.symbol_decl: SymbolEntry | None = None
-        self.address: int | None = None
 
     def source(self) -> str:
         return source("", [], None, None)
-
-    def object_code(self) -> bytearray:
-        return bytearray()
-
-    def __len__(self) -> int:
-        return 0
 
 
 class CommentNode:
     def __init__(self, comment: str):
         self.comment: str | None = comment
-        self.symbol_decl: SymbolEntry | None = None
-        self.address: int | None = None
 
     def source(self) -> str:
         return source("", [], None, self.comment)
-
-    def object_code(self) -> bytearray:
-        return bytearray()
-
-    def __len__(self) -> int:
-        return 0
 
 
 class UnaryNode:
@@ -121,6 +103,30 @@ def listing(to_list: Listable) -> List[str]:
     for b in itertools.batched(object_code, 3):
         lines.append(f"{'':4} {'':6}")
     return lines
+
+
+class EmptyIR(EmptyNode):
+    def __init__(self) -> None:
+        super().__init__()
+        self.address: int | None = None
+
+    def object_code(self) -> bytearray:
+        return bytearray()
+
+    def __len__(self):
+        return 0
+
+
+class CommentIR(CommentNode):
+    def __init__(self, comment: str) -> None:
+        super().__init__(comment)
+        self.address: int | None = None
+
+    def object_code(self) -> bytearray:
+        return bytearray()
+
+    def __len__(self):
+        return 0
 
 
 class UnaryIR(UnaryNode):

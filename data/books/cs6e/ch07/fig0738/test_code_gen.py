@@ -1,5 +1,5 @@
 from pep10.code_gen import program_object_code, generate_code
-from pep10.ir import EmptyNode, CommentNode
+from pep10.ir import CommentIR, EmptyIR
 from pep10.parser import parse
 from pep10.symbol import SymbolTable
 
@@ -34,4 +34,4 @@ def test_comment_empty():
 
     assert len(parse_tree) == 2 and len(ir) == 2
     assert program_object_code(ir) == bytes()
-    assert type(ir[0]) == EmptyNode and type(ir[1]) == CommentNode
+    assert type(ir[0]) == EmptyIR and type(ir[1]) == CommentIR

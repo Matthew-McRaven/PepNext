@@ -2,11 +2,11 @@ import itertools
 from typing import List, Tuple
 
 from pep10.arguments import ArgumentType, Identifier
-from pep10.ir import Listable, listing, ParserIR
+from pep10.ir import Listable, listing, ParserTreeNode
 from pep10.symbol import SymbolEntry
 
 
-def generate_code(parse_tree: List[ParserIR]) -> Tuple[List[Listable], List[str]]:
+def generate_code(parse_tree: List[ParserTreeNode]) -> Tuple[List[Listable], List[str]]:
     errors: List[str] = []
     ir: List[Listable] = []
     address = 0
