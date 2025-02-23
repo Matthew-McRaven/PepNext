@@ -1,6 +1,6 @@
 import pytest
 
-from pep10.symbol import SymbolTable
+from pep10.symbol import SymbolTable, add_OS_symbols
 
 
 # Referring to the same symbol in different places accesses the same underlying object.
@@ -75,3 +75,11 @@ def test_value_cycles():
     s1.value = s0
     with pytest.raises(RecursionError):
         s0.value = s1
+
+
+def tst_os_symbols():
+    tb = SymbolTable()
+    add_OS_symbols(tb)
+    assert "charIn" in tb and "charOut" in tb and "pwrOff" in tb
+    for s in {"DECI", "DECO", "STRO", "HEXO", "SNOP"}:
+        assert s in tb

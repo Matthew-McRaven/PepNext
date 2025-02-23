@@ -72,3 +72,14 @@ class SymbolTable:
 
     def __getitem__(self, name: str):
         return self._table[name]
+
+
+def add_OS_symbols(st: SymbolTable):
+    st.define("pwrOff").value = 0xFFFF
+    st.define("charOut").value = 0xFFFE
+    st.define("charIn").value = 0xFFFD
+    st.define("DECI").value = 0
+    st.define("DECO").value = 1
+    st.define("HEXO").value = 2
+    st.define("STRO").value = 3
+    st.define("SNOP").value = 4
