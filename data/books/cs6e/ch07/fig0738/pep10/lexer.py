@@ -56,7 +56,7 @@ class Lexer:
         | Tuple[Literal[Tokens.INVALID], None]
     ]
 
-    def __init__(self, buffer):
+    def __init__(self, buffer) -> None:
         self.buffer: io.StringIO = buffer
 
     def __iter__(self) -> "Lexer":

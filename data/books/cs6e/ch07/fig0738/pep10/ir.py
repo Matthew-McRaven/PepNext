@@ -25,9 +25,7 @@ class ParserIR(Protocol):
 
 
 class ErrorNode:
-    def __init__(
-        self,
-    ):
+    def __init__(self) -> None:
         self.comment: str | None = None
         self.symbol_decl: SymbolEntry | None = None
         self.address = 0
@@ -37,7 +35,7 @@ class ErrorNode:
 
 
 class EmptyNode:
-    def __init__(self):
+    def __init__(self) -> None:
         self.comment: str | None = None
         self.symbol_decl: SymbolEntry | None = None
         self.address: int | None = None
@@ -127,7 +125,7 @@ def listing(to_list: Listable) -> List[str]:
 
 
 class UnaryIR(UnaryNode):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.address: int | None = None
 
@@ -140,7 +138,7 @@ class UnaryIR(UnaryNode):
 
 
 class NonUnaryIR(NonUnaryNode):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.address: int | None = None
 

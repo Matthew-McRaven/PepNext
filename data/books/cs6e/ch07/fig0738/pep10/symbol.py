@@ -54,7 +54,7 @@ class SymbolEntry:
 
 
 class SymbolTable:
-    def __init__(self):
+    def __init__(self) -> None:
         self._table: Dict[str, SymbolEntry] = {}
 
     def reference(self, name: str) -> SymbolEntry:
