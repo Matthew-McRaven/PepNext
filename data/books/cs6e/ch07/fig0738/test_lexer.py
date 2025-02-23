@@ -102,3 +102,22 @@ def test_lexer_dot_requires_char():
 
     tk = Lexer(StringIO(".0 "))
     assert next(tk) == (Tokens.INVALID, None)
+
+
+def test_lexer_unescaped_string():
+    tk = Lexer(StringIO('"Hello world"'))
+    assert next(tk) == (Tokens.STRING, b"Hello world")
+    tk = Lexer(StringIO('""'))
+    assert next(tk) == (Tokens.STRING, b"")
+    tk = Lexer(StringIO('" "'))
+    assert next(tk) == (Tokens.STRING, b" ")
+    tk = Lexer(StringIO('"\'"'))
+    assert next(tk) == (Tokens.STRING, b"'")
+
+
+def test_lexer_nonhex_escape_string():
+    tk = Lexer(StringIO('"\\r\\t\\n\\\\\\""'))
+    assert next(tk) == (Tokens.STRING, b'\r\t\n\\"')
+    # Invalid escape character
+    tk = Lexer(StringIO('"\\a"'))
+    assert next(tk) == (Tokens.INVALID, None)

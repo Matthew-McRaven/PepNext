@@ -40,3 +40,19 @@ class Decimal:
 
     def __str__(self):
         return f"{self.value}"
+
+
+class StringConstant:
+    def __init__(self, value: bytes):
+        self.value: bytes = value
+
+    def __int__(self) -> int:
+        return int.from_bytes(self.value)
+
+    def __str__(self):
+        # ret[0:1] ==b' and ret[-1] == '
+        # Need to drop binary prefix and replace single with double quotes
+        ret = repr(self.value)[2:-1]
+        # Repr singles quotes our string by default, so doubles quotes are unescaped.
+        ret = ret.replace('"', '\\"')
+        return f'"{ret}"'

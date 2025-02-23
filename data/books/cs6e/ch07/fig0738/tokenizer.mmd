@@ -20,7 +20,7 @@ flowchart LR
     Start -->|"'"| OpenSingleQuote((Open '))
     OpenSingleQuote -->|"Not \\"| ExpectSingleQuote((Awaiting<br>Close '))
     OpenSingleQuote -->|"\\"| SingleEscape((Expect<br/>Escape<br/>))
-    SingleEscape -->|"rtbn"|ExpectSingleQuote
+    SingleEscape -->|"rt'n"|ExpectSingleQuote
     SingleEscape -->|xX|ExpectHexCode0((Expecting<br/>Hexcode))
     ExpectHexCode0 -->|a-fA-F0-9|ExpectHexCode1((Expecting<br/>Hexcode))
     ExpectHexCode0 -->|'|CloseSingleQuote
@@ -30,7 +30,7 @@ flowchart LR
     OpenDoubleQuote -->|"Not \\ or &quot;"| OpenDoubleQuote(("Awaiting<br>Close &quot;"))
     OpenDoubleQuote -->|"&quot;"|StringConstant(((String<br/>Constant)))
     OpenDoubleQuote -->|"\\"| DoubleEscape((Expect<br/>Escape<br/>Sequence))
-    DoubleEscape -->|"rtbn"|OpenDoubleQuote
+    DoubleEscape -->|"rt&quot;n"|OpenDoubleQuote
     DoubleEscape -->|xX|ExpectStringHexCode0((Expecting<br/>Hexcode))
     ExpectStringHexCode0 -->|a-fA-F0-9|ExpectStringHexCode1((Expecting<br/>Hexcode))
     ExpectStringHexCode0 -->|"&quot;"|StringConstant

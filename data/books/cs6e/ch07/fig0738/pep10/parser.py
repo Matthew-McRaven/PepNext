@@ -2,7 +2,13 @@ import io
 from collections import deque
 from typing import Union, cast, List
 
-from pep10.arguments import ArgumentType, Hexadecimal, Decimal, Identifier
+from pep10.arguments import (
+    ArgumentType,
+    Hexadecimal,
+    Decimal,
+    Identifier,
+    StringConstant,
+)
 from pep10.ir import (
     UnaryNode,
     NonUnaryIR,
@@ -77,6 +83,8 @@ class Parser:
         elif ident := self.may_match(Tokens.IDENTIFIER):
             sym = self.symbol_table.reference(cast(str, ident[1]))
             return Identifier(sym)
+        elif str_const := self.may_match(Tokens.STRING):
+            return StringConstant(cast(bytes, str_const[1]))
         return None
 
     def unary_instruction(self) -> UnaryNode | None:

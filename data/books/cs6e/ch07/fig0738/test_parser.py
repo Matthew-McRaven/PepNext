@@ -1,7 +1,7 @@
 import io
 from typing import cast
 
-from pep10.arguments import Decimal, Hexadecimal, Identifier
+from pep10.arguments import Decimal, Hexadecimal, Identifier, StringConstant
 from pep10.ir import (
     UnaryIR,
     NonUnaryIR,
@@ -60,6 +60,26 @@ def test_nonunary():
     arg: Identifier = item.argument
     assert str(arg) == "cat"
     assert arg.symbol.is_singly_defined()
+
+    ret = parse('cat: BR "h\'",i')
+    item = cast(NonUnaryIR, ret[0])
+    assert type(item) == NonUnaryIR
+    assert str(item.symbol_decl) == "cat"
+    assert item.mnemonic == "BR"
+    assert type(item.argument) == StringConstant
+    arg: StringConstant = item.argument
+    assert int(arg).to_bytes(2) == "h'".encode("utf-8")
+    assert str(arg) == '"h\'"'
+
+    ret = parse('cat: BR "\\r\\"",i')
+    item = cast(NonUnaryIR, ret[0])
+    assert type(item) == NonUnaryIR
+    assert str(item.symbol_decl) == "cat"
+    assert item.mnemonic == "BR"
+    assert type(item.argument) == StringConstant
+    arg: StringConstant = item.argument
+    assert int(arg).to_bytes(2) == '\r"'.encode("utf-8")
+    assert str(arg) == '"\\r\\""'
 
 
 def test_nonunary_fail():

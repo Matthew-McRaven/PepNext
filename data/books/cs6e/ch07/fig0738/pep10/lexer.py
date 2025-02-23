@@ -71,6 +71,7 @@ class Lexer:
             self.buffer.seek(prev_pos, os.SEEK_SET)
 
         as_str_list: List[str] = []
+        as_bytes: bytes = bytes()
         as_int: int = 0
         sign: Literal[-1, 1] = 1
         state: Lexer.States = Lexer.States.START
@@ -190,6 +191,49 @@ class Lexer:
                         self.buffer.seek(prev_pos, os.SEEK_SET)
                         state = Lexer.States.STOP
                         token = (Tokens.DOT, "".join(as_str_list))
+
+                case Lexer.States.STRING_AWAITING_CLOSE:
+                    if ch == '"':
+                        token = (Tokens.STRING, as_bytes)
+                        state = Lexer.States.STOP
+                    elif ch == "\\":
+                        state = Lexer.States.STRING_EXPECT_ESCAPE
+                    else:
+                        as_bytes = as_bytes + ch.encode("utf-8")
+                case Lexer.States.STRING_EXPECT_ESCAPE:
+                    escapes = {
+                        "r": b"\r",
+                        "t": b"\t",
+                        "n": b"\n",
+                        '"': b'"',
+                        "\\": b"\\",
+                    }
+                    if ch in escapes:
+                        state = Lexer.States.STRING_AWAITING_CLOSE
+                        as_bytes += escapes[ch]
+                    elif ch in "xX":
+                        state = Lexer.States.STRING_EXPECT_HEX0
+                    else:
+                        token = (Tokens.INVALID, None)
+                case Lexer.States.STRING_EXPECT_HEX0:
+                    if ch in string.digits:
+                        state = Lexer.States.STRING_EXPECT_HEX1
+                        as_int = as_int * 16 + (ord(ch) - ord("0"))
+                    elif ch in string.hexdigits:
+                        state = Lexer.States.STRING_EXPECT_HEX1
+                        as_int = as_int * 16 + (10 + ord(ch.lower()) - ord("a"))
+                case Lexer.States.STRING_EXPECT_HEX1:
+                    if ch in string.digits:
+                        state = Lexer.States.STRING_AWAITING_CLOSE
+                        as_int = as_int * 16 + (ord(ch) - ord("0"))
+                        as_bytes += as_int.to_bytes(1)
+                    elif ch in string.hexdigits:
+                        state = Lexer.States.STRING_AWAITING_CLOSE
+                        as_int = as_int * 16 + (10 + ord(ch.lower()) - ord("a"))
+                        as_bytes += as_int.to_bytes(1)
+                    elif ch == '"':
+                        state = Lexer.States.STOP
+                        token = (Tokens.STRING, as_bytes + as_int.to_bytes(1))
 
                 case _:
                     token = (Tokens.INVALID, None)

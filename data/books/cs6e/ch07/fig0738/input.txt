@@ -1,5 +1,5 @@
 
 BR main,i ;;    Skip over data
-main: ADDA 0x10,i
+main: ADDA "\x10",i
 STwa               charOut,  D
 RET
