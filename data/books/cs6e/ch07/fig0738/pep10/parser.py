@@ -56,6 +56,9 @@ class Parser:
         invalid, empty = (Tokens.INVALID, None), (Tokens.EMPTY, None)
         while self.peek() not in {invalid, empty, None}:
             self._buffer.popleft()
+        # Consume trailing newline so we can begin parsing on the next line
+        if len(self._buffer) and self._buffer[0] == empty:
+            self._buffer.popleft()
 
     def __next__(self) -> ParserIR:
         if self.peek() is None:
@@ -151,5 +154,6 @@ class Parser:
 
 
 def parse(text: str, symbol_table: SymbolTable | None = None) -> List[ParserIR]:
-    parser = Parser(io.StringIO(text + "\n"), symbol_table=symbol_table)
+    # Remove trailing whitespace while insuring input is \n terminated.
+    parser = Parser(io.StringIO(text.rstrip() + "\n"), symbol_table=symbol_table)
     return [line for line in parser]
