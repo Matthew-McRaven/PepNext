@@ -146,14 +146,15 @@ class DotEquateNode:
 
 def listing(to_list: Listable) -> List[str]:
     object_code = to_list.object_code()
+    oc_format = lambda oc: "".join(f"{i:02X}" for i in oc)
     if len(object_code) <= 3:
         line_object_code, object_code = object_code, bytearray([])
     else:
         line_object_code, object_code = object_code[0:2], object_code[3:]
-    address = f"{to_list.address:04x}" if to_list.address is not None else 4 * " "
-    lines = [f"{address} {'':6} {to_list.source()}"]
+    address = f"{to_list.address:04X}" if to_list.address is not None else 4 * " "
+    lines = [f"{address} {oc_format(line_object_code):6} {to_list.source()}"]
     for b in itertools.batched(object_code, 3):
-        lines.append(f"{'':4} {'':6}")
+        lines.append(f"{'':4} {oc_format(b): 6}")
     return lines
 
 
