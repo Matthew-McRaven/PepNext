@@ -18,6 +18,11 @@ from pep10.ir import (
     ParserTreeNode,
     CommentIR,
     EmptyIR,
+    DotLiteralIR,
+    DotASCIIIR,
+    DotBlockIR,
+    DotCommandIR,
+    DotEquateIR,
 )
 from pep10.lexer import Lexer, Tokens
 from pep10.mnemonics import (
@@ -26,7 +31,7 @@ from pep10.mnemonics import (
     AddressingMode,
     DEFAULT_ADDRESSING_MODES,
 )
-from pep10.symbol import SymbolTable
+from pep10.symbol import SymbolTable, SymbolEntry
 
 
 class Parser:
@@ -87,7 +92,7 @@ class Parser:
             return StringConstant(cast(bytes, str_const[1]))
         return None
 
-    def unary_instruction(self) -> UnaryNode | None:
+    def unary_instruction(self, symbol: SymbolEntry | None = None) -> UnaryNode | None:
         if not (mn := self.may_match(Tokens.IDENTIFIER)):
             return None
         mn_str = cast(str, mn[1]).upper()
@@ -95,10 +100,12 @@ class Parser:
             return None
         match INSTRUCTION_TYPES[mn_str]:
             case InstructionType.R | InstructionType.U:
-                return UnaryIR(mn_str)
+                return UnaryIR(mn_str, sym=symbol)
         return None
 
-    def nonunary_instruction(self) -> NonUnaryNode | None:
+    def nonunary_instruction(
+        self, symbol: SymbolEntry | None = None
+    ) -> NonUnaryNode | None:
         if not (mn := self.may_match(Tokens.IDENTIFIER)):
             return None
         mn_str = cast(str, mn[1]).upper()
@@ -130,20 +137,70 @@ class Parser:
                     raise SyntaxError()
             except KeyError:
                 raise SyntaxError()
-            return NonUnaryIR(mn_str, argument, addr)
+            return NonUnaryIR(mn_str, argument, addr, sym=symbol)
         elif mn_str in DEFAULT_ADDRESSING_MODES:
-            return NonUnaryIR(mn_str, argument, DEFAULT_ADDRESSING_MODES[mn_str])
+            return NonUnaryIR(
+                mn_str, argument, DEFAULT_ADDRESSING_MODES[mn_str], sym=symbol
+            )
         raise SyntaxError()
 
-    def directive(self):
-        raise NotImplementedError()
+    def directive(self, symbol: SymbolEntry | None = None) -> DotCommandIR | None:
+        if not (dot := self.may_match(Tokens.DOT)):
+            return None
+        dot_str = cast(str, dot[1]).upper()
+        argument: ArgumentType | None = None
+        match dot_str:
+            case "BYTE" | "WORD":
+                # TODO: allow identifier as an argument to WORD, to let it function like .ADDRSS. This requires cycle detection.
+                if dec := self.may_match(Tokens.DECIMAL):
+                    argument = Decimal(cast(int, dec[1]))
+                elif _hex := self.may_match(Tokens.HEX):
+                    argument = Hexadecimal(cast(int, _hex[1]))
+                else:
+                    raise SyntaxError(f"{dot_str} requires an integer argument")
+                return DotLiteralIR(
+                    argument, width=1 if dot_str == "BYTE" else 2, sym=symbol
+                )
+            case "ASCII":
+                as_str = self.must_match(Tokens.STRING)
+                argument = StringConstant(cast(bytes, as_str[1]))
+                return DotASCIIIR(argument, sym=symbol)
+            case "BLOCK":
+                if dec := self.may_match(Tokens.DECIMAL):
+                    argument = Decimal(cast(int, dec[1]))
+                elif hex := self.may_match(Tokens.HEX):
+                    argument = Hexadecimal(cast(int, hex[1]))
+                else:
+                    raise SyntaxError(f"{dot_str} requires an integer argument")
+                return DotBlockIR(argument, sym=symbol)
+            case "EQUATE":
+                if symbol is None:
+                    raise SyntaxError(".EQUATE requires a symbol declaration")
+                argument = self.argument()
+                if argument is None:
+                    raise SyntaxError(".EQUATE requires an argument")
+                try:
+                    if type(argument) == Identifier:
+                        print(symbol, argument.symbol)
+                        symbol.value = argument.symbol
+                    else:
+                        symbol.value = int(argument)
+                except RecursionError:
+                    raise SyntaxError(f"Cyclical symbol declaration: {symbol}")
+                return DotEquateIR(argument, sym=symbol)
+            case _:
+                raise SyntaxError(f"Unrecognized dot command {dot_str}")
 
-    def code_line(self) -> UnaryNode | NonUnaryNode | None:
+    def code_line(
+        self, symbol: SymbolEntry | None = None
+    ) -> UnaryNode | NonUnaryNode | DotCommandIR | None:
         line: ParserTreeNode | None = None
-        if nonunary := self.nonunary_instruction():
+        if nonunary := self.nonunary_instruction(symbol=symbol):
             line = nonunary
-        elif unary := self.unary_instruction():
+        elif unary := self.unary_instruction(symbol=symbol):
             line = unary
+        elif (dot := self.directive(symbol=symbol)) is not None:
+            line = dot
         else:
             return None
 
@@ -157,10 +214,14 @@ class Parser:
             return EmptyIR()
         elif comment := self.may_match(Tokens.COMMENT):
             line = CommentIR(cast(str, comment[1]))
-        elif (symbol := self.may_match(Tokens.SYMBOL)) and (code := self.code_line()):
-            code.symbol_decl = self.symbol_table.define(cast(str, symbol[1]))
+        elif symbol_token := self.may_match(Tokens.SYMBOL):
+            symbol = self.symbol_table.define(cast(str, symbol_token[1]))
+            if (code := self.code_line(symbol=symbol)) is None:
+                raise SyntaxError(
+                    "Symbol declaration must be followed by instruction or dot command"
+                )
             line = code
-        elif code := self.code_line():
+        elif (code := self.code_line()) is not None:
             line = code
         else:
             raise SyntaxError()

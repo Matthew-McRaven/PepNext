@@ -1,7 +1,7 @@
 import itertools
-from typing import List, Protocol, runtime_checkable
+from typing import List, Protocol, runtime_checkable, TypeAlias, Literal
 
-from pep10.arguments import ArgumentType
+from pep10.arguments import ArgumentType, StringConstant
 from pep10.mnemonics import AddressingMode, INSTRUCTION_TYPES, BITS, as_int
 from pep10.symbol import SymbolEntry
 
@@ -83,6 +83,72 @@ class NonUnaryNode:
         return source(self.mnemonic.upper(), args, self.symbol_decl, self.comment)
 
 
+class DotASCIINode:
+    def __init__(
+        self,
+        argument: StringConstant,
+        sym: SymbolEntry | None = None,
+        comment: str | None = None,
+    ):
+        self.symbol_decl: SymbolEntry | None = sym
+        self.argument: StringConstant = argument
+        self.comment: str | None = comment
+
+    def source(self) -> str:
+        args = [str(self.argument)]
+        return source(".ASCII", args, self.symbol_decl, self.comment)
+
+
+class DotLiteralNode:
+    def __init__(
+        self,
+        argument: ArgumentType,
+        width: Literal[1, 2] = 1,
+        sym: SymbolEntry | None = None,
+        comment: str | None = None,
+    ):
+        self.symbol_decl: SymbolEntry | None = sym
+        self.argument: ArgumentType = argument
+        self.width: int = width
+        self.comment: str | None = comment
+
+    def source(self) -> str:
+        args = [str(self.argument)]
+        name = ".BYTE" if self.width == 1 else ".WORD"
+        return source(name, args, self.symbol_decl, self.comment)
+
+
+class DotBlockNode:
+    def __init__(
+        self,
+        argument: ArgumentType,
+        sym: SymbolEntry | None = None,
+        comment: str | None = None,
+    ):
+        self.symbol_decl: SymbolEntry | None = sym
+        self.argument = argument
+        self.comment: str | None = comment
+
+    def source(self) -> str:
+        return source(".BLOCK", [str(self.argument)], self.symbol_decl, self.comment)
+
+
+class DotEquateNode:
+    def __init__(
+        self,
+        argument: ArgumentType,
+        sym: SymbolEntry | None = None,
+        comment: str | None = None,
+    ):
+        self.symbol_decl: SymbolEntry | None = sym
+        self.argument: ArgumentType = argument
+        self.comment: str | None = comment
+
+    def source(self) -> str:
+        args = [str(self.argument)]
+        return source(".EQUATE", args, self.symbol_decl, self.comment)
+
+
 @runtime_checkable
 class Listable(Protocol):
     address: int | None
@@ -155,3 +221,54 @@ class NonUnaryIR(NonUnaryNode):
 
     def __len__(self) -> int:
         return 3
+
+
+class DotASCIIIR(DotASCIINode):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.address: int | None = None
+
+    def object_code(self) -> bytearray:
+        return bytearray(self.argument.value)
+
+    def __len__(self) -> int:
+        return len(self.argument.value)
+
+
+class DotLiteralIR(DotLiteralNode):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.address: int | None = None
+
+    def object_code(self) -> bytearray:
+        return bytearray(int(self.argument) * [0])
+
+    def __len__(self) -> int:
+        return int(self.width)
+
+
+class DotBlockIR(DotBlockNode):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.address: int | None = None
+
+    def object_code(self) -> bytearray:
+        return bytearray(int(self.argument) * [0])
+
+    def __len__(self) -> int:
+        return int(self.argument)
+
+
+class DotEquateIR(DotEquateNode):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.address: int | None = None
+
+    def object_code(self) -> bytearray:
+        return bytearray()
+
+    def __len__(self) -> int:
+        return 0
+
+
+DotCommandIR: TypeAlias = DotASCIIIR | DotLiteralIR | DotBlockIR | DotEquateIR
