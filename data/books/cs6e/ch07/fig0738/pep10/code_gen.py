@@ -2,7 +2,7 @@ import itertools
 from typing import List, Tuple, cast
 
 from pep10.arguments import Identifier
-from pep10.ir import Listable, listing, MacroIR
+from pep10.ir import Listable, listing, MacroIR, ErrorNode
 from pep10.symbol import SymbolEntry
 from pep10.types import ParseTreeNode, ArgumentType
 
@@ -14,8 +14,10 @@ def generate_code(
     ir: List[Listable] = []
     address = base_address
     for node in parse_tree:
-        # TODO: recursively generate code for macros, extending our output with theirs.
-        if isinstance(node, MacroIR) and isinstance(node, Listable):
+        if isinstance(node, ErrorNode):
+            errors.append(node.source())
+            continue
+        elif isinstance(node, MacroIR) and isinstance(node, Listable):
             inner_ir, inner_errors = generate_code(node.body, base_address=address)
             print(inner_ir, inner_errors)
             ir.append(node.start_comment())
