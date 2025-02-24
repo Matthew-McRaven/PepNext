@@ -25,6 +25,8 @@ class SymbolEntry:
         if type(value) is int:
             self._value = value
         # If given a value that itself is a symbol we must prevent cycles.
+        elif value == self:
+            raise RecursionError()
         else:
             # parents is a set which contains all visited SymbolEntry instances
             parents, next_value = {self}, value

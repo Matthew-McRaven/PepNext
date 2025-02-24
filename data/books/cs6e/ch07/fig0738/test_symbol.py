@@ -68,6 +68,9 @@ def test_value_cycles():
     tb = SymbolTable()
     s0, s1, s2 = tb.reference("p0"), tb.reference("p1"), tb.reference("p2")
     s2.value = s1
+    # Create a cycle containing exactly 1 symbols
+    with pytest.raises(RecursionError):
+        s1.value = s1
     # Create a cycle containing exactly 2 symbols
     with pytest.raises(RecursionError):
         s1.value = s2
