@@ -18,7 +18,6 @@ def test_undefined():
     tb = SymbolTable()
     s = tb.reference("test")
     assert s.is_undefined()
-    assert not s.is_singly_defined()
     assert not s.is_multiply_defined()
 
 
@@ -26,17 +25,14 @@ def test_definition_transitions():
     tb = SymbolTable()
     s0 = tb.reference("test")
     assert s0.is_undefined()
-    assert not s0.is_singly_defined()
     assert not s0.is_multiply_defined()
     tb.define("test")
     assert not s0.is_undefined()
-    assert s0.is_singly_defined()
     assert not s0.is_multiply_defined()
     # Ensure that repeated definitions keeps us in the multiply defined state.
     for i in range(3):
         tb.define("test")
         assert not s0.is_undefined()
-        assert not s0.is_singly_defined()
         assert s0.is_multiply_defined()
 
 
@@ -48,9 +44,6 @@ def test_value_assignment():
     s0.value = 5
     assert s0.value == 5
     assert int(s0) == 5
-    del s0.value
-    assert s0.value is None
-    assert int(s0) == 0
 
 
 def test_value_pointers():

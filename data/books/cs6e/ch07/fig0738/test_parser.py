@@ -63,7 +63,8 @@ def test_nonunary() -> None:
     assert type(item.argument) == Identifier
     arg: Identifier = item.argument
     assert str(arg) == "cat"
-    assert arg.symbol.is_singly_defined()
+    assert not arg.symbol.is_undefined()
+    assert not arg.symbol.is_multiply_defined()
 
     ret = parse('cat: BR "h\'",i')
     item = cast(NonUnaryIR, ret[0])
