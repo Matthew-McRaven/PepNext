@@ -3,7 +3,6 @@ from collections import deque
 from typing import Union, cast, List
 
 from pep10.arguments import (
-    ArgumentType,
     Hexadecimal,
     Decimal,
     Identifier,
@@ -15,7 +14,6 @@ from pep10.ir import (
     UnaryIR,
     ErrorNode,
     NonUnaryNode,
-    ParserTreeNode,
     CommentIR,
     EmptyIR,
     DotLiteralIR,
@@ -32,29 +30,31 @@ from pep10.mnemonics import (
     DEFAULT_ADDRESSING_MODES,
 )
 from pep10.symbol import SymbolTable, SymbolEntry
+from pep10.tokens import TokenType
+from pep10.types import ArgumentType, ParseTreeNode
 
 
 class Parser:
     def __init__(self, buffer: io.StringIO, symbol_table: SymbolTable | None = None):
         self.lexer = Lexer(buffer)
-        self._buffer: deque[Lexer.TokenType] = deque()
+        self._buffer: deque[TokenType] = deque()
         self.symbol_table = symbol_table if symbol_table else SymbolTable()
 
     def __iter__(self):
         return self
 
-    def may_match(self, expected: Tokens) -> Union[Lexer.TokenType, None]:
+    def may_match(self, expected: Tokens) -> Union[TokenType, None]:
         if (token := self.peek()) and token[0] == expected:
             return self._buffer.popleft()
         return None
 
-    def must_match(self, expected: Tokens) -> Lexer.TokenType:
+    def must_match(self, expected: Tokens) -> TokenType:
         if ret := self.may_match(expected):
             return ret
         else:
             raise SyntaxError()
 
-    def peek(self) -> Lexer.TokenType | None:
+    def peek(self) -> TokenType | None:
         if len(self._buffer) > 0:
             return self._buffer[0]
         try:
@@ -71,7 +71,7 @@ class Parser:
         if len(self._buffer) and self._buffer[0] == empty:
             self._buffer.popleft()
 
-    def __next__(self) -> ParserTreeNode:
+    def __next__(self) -> ParseTreeNode:
         if self.peek() is None:
             raise StopIteration()
         try:
@@ -86,8 +86,7 @@ class Parser:
         elif dec := self.may_match(Tokens.DECIMAL):
             return Decimal(cast(int, dec[1]))
         elif ident := self.may_match(Tokens.IDENTIFIER):
-            sym = self.symbol_table.reference(cast(str, ident[1]))
-            return Identifier(sym)
+            return Identifier(self.symbol_table.reference(cast(str, ident[1])))
         elif str_const := self.may_match(Tokens.STRING):
             return StringConstant(cast(bytes, str_const[1]))
         return None
@@ -181,7 +180,6 @@ class Parser:
                     raise SyntaxError(".EQUATE requires an argument")
                 try:
                     if type(argument) == Identifier:
-                        print(symbol, argument.symbol)
                         symbol.value = argument.symbol
                     else:
                         symbol.value = int(argument)
@@ -194,7 +192,7 @@ class Parser:
     def code_line(
         self, symbol: SymbolEntry | None = None
     ) -> UnaryNode | NonUnaryNode | DotCommandIR | None:
-        line: ParserTreeNode | None = None
+        line: ParseTreeNode | None = None
         if nonunary := self.nonunary_instruction(symbol=symbol):
             line = nonunary
         elif unary := self.unary_instruction(symbol=symbol):
@@ -208,8 +206,8 @@ class Parser:
             line.comment = cast(str, comment[1])
         return line
 
-    def statement(self) -> ParserTreeNode:
-        line: ParserTreeNode | None = None
+    def statement(self) -> ParseTreeNode:
+        line: ParseTreeNode | None = None
         if self.may_match(Tokens.EMPTY):
             return EmptyIR()
         elif comment := self.may_match(Tokens.COMMENT):
@@ -231,7 +229,7 @@ class Parser:
         return line
 
 
-def parse(text: str, symbol_table: SymbolTable | None = None) -> List[ParserTreeNode]:
+def parse(text: str, symbol_table: SymbolTable | None = None) -> List[ParseTreeNode]:
     # Remove trailing whitespace while insuring input is \n terminated.
     parser = Parser(io.StringIO(text.rstrip() + "\n"), symbol_table=symbol_table)
     return [line for line in parser]

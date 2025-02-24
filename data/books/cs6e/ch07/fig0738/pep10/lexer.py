@@ -2,59 +2,19 @@ import io
 import os
 import string
 from enum import Enum
-from typing import TypeAlias, Union, Tuple, Literal, List
+from typing import Literal, List
 
-
-class Tokens(Enum):
-    EMPTY = 1
-    COMMA = 2
-    COMMENT = 3
-    IDENTIFIER = 4
-    SYMBOL = 5
-    DECIMAL = 6
-    HEX = 7
-    DOT = 8
-    CHARACTER = 9
-    STRING = 10
-    INVALID = -1
+from pep10.tokens import Tokens, TokenType
 
 
 class Lexer:
     class States(Enum):
-        START = 0
-        COMMENT = 3
-        IDENTIFIER = 4
-        MAYBE_HEX = 6
-        HEX_PREFIX = 7
-        HEX = 8
-        MAYBE_SIGNED = 9
-        DECIMAL = 10
-        MAYBE_DOT = 11
-        DOT = 12
-        CHAR_OPEN = 13
-        CHAR_AWAITING_CLOSE = 14
-        CHAR_EXPECT_ESCAPE = 15
-        CHAR_EXPECT_HEX0 = 16
-        CHAR_EXPECT_HEX1 = 17
-        STRING_AWAITING_CLOSE = 18
-        STRING_EXPECT_ESCAPE = 19
-        STRING_EXPECT_HEX0 = 20
-        STRING_EXPECT_HEX1 = 21
+        START, COMMENT, IDENTIFIER, MAYBE_HEX, HEX_PREFIX, HEX = range(0, 6)
+        MAYBE_SIGNED, DECIMAL, MAYBE_DOT, DOT, CHAR_OPEN = range(6, 11)
+        CHAR_AWAITING_CLOSE, CHAR_EXPECT_ESCAPE, CHAR_EXPECT_HEX0 = range(11, 14)
+        CHAR_EXPECT_HEX1, STRING_AWAITING_CLOSE, STRING_EXPECT_ESCAPE = range(14, 17)
+        STRING_EXPECT_HEX0, STRING_EXPECT_HEX1 = range(17, 19)
         STOP = -1
-
-    TokenType: TypeAlias = Union[
-        Tuple[Literal[Tokens.DECIMAL], int]
-        | Tuple[Literal[Tokens.HEX], int]
-        | Tuple[Literal[Tokens.IDENTIFIER], str]
-        | Tuple[Literal[Tokens.SYMBOL], str]
-        | Tuple[Literal[Tokens.COMMENT], str]
-        | Tuple[Literal[Tokens.DOT], str]
-        | Tuple[Literal[Tokens.CHARACTER], bytes]
-        | Tuple[Literal[Tokens.STRING], bytes]
-        | Tuple[Literal[Tokens.EMPTY], None]
-        | Tuple[Literal[Tokens.COMMA], None]
-        | Tuple[Literal[Tokens.INVALID], None]
-    ]
 
     def __init__(self, buffer) -> None:
         self.buffer: io.StringIO = buffer
@@ -62,7 +22,7 @@ class Lexer:
     def __iter__(self) -> "Lexer":
         return self
 
-    def __next__(self) -> TokenType:
+    def __next__(self) -> "TokenType":
         prev_pos = self.buffer.tell()
         next_ch = self.buffer.read(1)
         if len(next_ch) == 0:
@@ -75,21 +35,19 @@ class Lexer:
         as_int: int = 0
         sign: Literal[-1, 1] = 1
         state: Lexer.States = Lexer.States.START
-        token: Lexer.TokenType = (Tokens.EMPTY, None)
+        token: "TokenType" = (Tokens.EMPTY, None)
 
         while state != Lexer.States.STOP and token[0] != Tokens.INVALID:
             prev_pos = self.buffer.tell()
             ch: str = self.buffer.read(1)
+            if len(ch) == 0:
+                break
             match state:
-                case _ if len(ch) == 0:
-                    state = Lexer.States.STOP
-
                 case Lexer.States.START:
                     if ch == "\n":
                         state = Lexer.States.STOP
                     elif ch == ",":
-                        state = Lexer.States.STOP
-                        token = (Tokens.COMMA, None)
+                        state, token = Lexer.States.STOP, (Tokens.COMMA, None)
                     elif ch.isspace():
                         pass
                     elif ch == ";":
@@ -100,8 +58,7 @@ class Lexer:
                     elif ch == "0":
                         state = Lexer.States.MAYBE_HEX
                     elif ch.isdecimal():
-                        as_int = ord(ch) - ord("0")
-                        state = Lexer.States.DECIMAL
+                        state, as_int = Lexer.States.DECIMAL, ord(ch) - ord("0")
                     elif ch == ".":
                         state = Lexer.States.MAYBE_DOT
                     elif ch == "'":
@@ -109,8 +66,7 @@ class Lexer:
                     elif ch == '"':
                         state = Lexer.States.STRING_AWAITING_CLOSE
                     elif ch == "+" or ch == "-":
-                        sign = -1 if ch == "-" else 1
-                        state = Lexer.States.MAYBE_SIGNED
+                        state, sign = Lexer.States.MAYBE_SIGNED, -1 if ch == "-" else 1
                     else:
                         token = (Tokens.INVALID, None)
 
@@ -201,16 +157,10 @@ class Lexer:
                     else:
                         as_bytes = as_bytes + ch.encode("utf-8")
                 case Lexer.States.STRING_EXPECT_ESCAPE:
-                    escapes = {
-                        "r": b"\r",
-                        "t": b"\t",
-                        "n": b"\n",
-                        '"': b'"',
-                        "\\": b"\\",
-                    }
+                    escapes = dict(zip('rtbn"\\', '\r\t\b\n"\\'))
                     if ch in escapes:
                         state = Lexer.States.STRING_AWAITING_CLOSE
-                        as_bytes += escapes[ch]
+                        as_bytes += escapes[ch].encode("utf-8")
                     elif ch in "xX":
                         state = Lexer.States.STRING_EXPECT_HEX0
                     else:

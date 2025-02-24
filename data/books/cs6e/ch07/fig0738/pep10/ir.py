@@ -1,9 +1,10 @@
 import itertools
-from typing import List, Protocol, runtime_checkable, TypeAlias, Literal
+from typing import List, TypeAlias, Literal
 
-from pep10.arguments import ArgumentType, StringConstant
+from pep10.arguments import StringConstant
 from pep10.mnemonics import AddressingMode, INSTRUCTION_TYPES, BITS, as_int
 from pep10.symbol import SymbolEntry
+from pep10.types import ArgumentType, Listable
 
 
 def source(
@@ -15,12 +16,6 @@ def source(
     sym_str = f"{symbol}:" if symbol else ""
     comment_str = f";{comment}" if comment else ""
     return f"{sym_str:7}{op:7}{','.join(args):12}{comment_str}"
-
-
-class ParserTreeNode(Protocol):
-    comment: str | None
-
-    def source(self) -> str: ...
 
 
 class ErrorNode:
@@ -147,15 +142,6 @@ class DotEquateNode:
     def source(self) -> str:
         args = [str(self.argument)]
         return source(".EQUATE", args, self.symbol_decl, self.comment)
-
-
-@runtime_checkable
-class Listable(Protocol):
-    address: int | None
-
-    def source(self) -> str: ...
-    def object_code(self) -> bytearray: ...
-    def __len__(self) -> int: ...
 
 
 def listing(to_list: Listable) -> List[str]:

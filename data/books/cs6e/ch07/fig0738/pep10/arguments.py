@@ -1,11 +1,4 @@
-from typing import Protocol
-
 from pep10.symbol import SymbolEntry
-
-
-class ArgumentType(Protocol):
-    def __str__(self) -> str: ...
-    def __int__(self) -> int: ...
 
 
 class Identifier:

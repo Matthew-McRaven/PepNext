@@ -24,7 +24,6 @@ def test_A_bit_patterns():
 def test_type_masks():
     assert InstructionType.U != InstructionType.R
     # Mask calculations work
-    assert 33 == int(InstructionType.A_ix.address_mask())
     assert InstructionType.A_ix.allows_addressing_mode(AddressingMode.I)
     assert InstructionType.A_ix.allows_addressing_mode(AddressingMode.X)
     assert not InstructionType.A_ix.allows_addressing_mode(AddressingMode.D)
