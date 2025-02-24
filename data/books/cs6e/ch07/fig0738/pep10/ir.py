@@ -19,11 +19,12 @@ def source(
 
 
 class ErrorNode:
-    def __init__(self) -> None:
-        self.comment: str | None = None
+    def __init__(self, error: str | None = None) -> None:
+        self.comment: str | None = error
 
     def source(self) -> str:
-        return ";Failed to parse line"
+        message = self.comment if self.comment else "Failed to parse line"
+        return f";ERROR: {message}"
 
 
 class EmptyNode:

@@ -85,9 +85,9 @@ class Parser:
             raise StopIteration()
         try:
             return self.statement()
-        except SyntaxError:
+        except SyntaxError as s:
             self.skip_to_next_line()
-            return ErrorNode()
+            return ErrorNode(error=s.msg if s.msg else None)
         except KeyError:  # Invalid macro lookup
             self.skip_to_next_line()
             return ErrorNode()
@@ -127,7 +127,7 @@ class Parser:
             return None
         mn_str = cast(str, mn[1]).upper()
         if mn_str not in INSTRUCTION_TYPES:
-            return None
+            raise SyntaxError(f"Unrecognized mnemonic: {mn_str}")
         match INSTRUCTION_TYPES[mn_str]:
             case InstructionType.R | InstructionType.U:
                 return UnaryIR(mn_str, sym=symbol)
@@ -140,7 +140,7 @@ class Parser:
             return None
         mn_str = cast(str, mn[1]).upper()
         if mn_str not in INSTRUCTION_TYPES:
-            return None
+            raise SyntaxError(f"Unrecognized mnemonic: {mn_str}")
         match INSTRUCTION_TYPES[mn_str]:
             case InstructionType.R | InstructionType.U:
                 self._buffer.appendleft(mn)
