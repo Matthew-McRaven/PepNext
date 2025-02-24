@@ -8,14 +8,15 @@ from pep10.code_gen import (
     program_source,
 )
 from pep10.ir import ErrorNode
+from pep10.macro import MacroRegistry, add_OS_macros
 from pep10.parser import parse
 from pep10.symbol import SymbolTable, add_OS_symbols
 
 
 def assemble(text: str):
-    st = SymbolTable()
-    add_OS_symbols(st)
-    parse_tree = parse(text, symbol_table=st)
+    st, mr = SymbolTable(), MacroRegistry()
+    add_OS_symbols(st), add_OS_macros(mr)
+    parse_tree = parse(text, symbol_table=st, macro_registry=mr)
     parse_errors = list(filter(lambda n: type(n) == ErrorNode, parse_tree))
     if len(parse_errors) > 0:
         for error in parse_errors:

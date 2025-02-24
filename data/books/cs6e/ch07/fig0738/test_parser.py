@@ -14,7 +14,10 @@ from pep10.ir import (
     DotBlockIR,
     DotLiteralIR,
     DotEquateIR,
+    MacroNode,
+    MacroIR,
 )
+from pep10.macro import MacroRegistry
 from pep10.mnemonics import AddressingMode
 from pep10.parser import Parser, parse
 
@@ -38,6 +41,16 @@ def test_unary_fail() -> None:
 
     res = parse("RETS \n")
     assert type(res[0]) == ErrorNode
+
+
+def test_macro() -> None:
+    mr = MacroRegistry()
+    mr.insert("HI", 0, ";WORLD")
+    res = parse("@HI \n", macro_registry=mr)
+    assert type(res[0]) == MacroIR
+    item: MacroNode = res[0]
+    assert len(item.body) == 1
+    assert type(item.body[0]) == CommentIR
 
 
 def test_nonunary() -> None:

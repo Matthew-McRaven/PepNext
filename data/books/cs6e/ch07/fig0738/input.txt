@@ -2,4 +2,5 @@
 BR main,i ;;    Skip over data
 main: ADDA "\x10",i
 STwa               charOut,  D
+@STRO   main,d
 RET

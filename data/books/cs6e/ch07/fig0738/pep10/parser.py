@@ -21,8 +21,11 @@ from pep10.ir import (
     DotBlockIR,
     DotCommandIR,
     DotEquateIR,
+    MacroNode,
+    MacroIR,
 )
 from pep10.lexer import Lexer, Tokens
+from pep10.macro import MacroRegistry
 from pep10.mnemonics import (
     INSTRUCTION_TYPES,
     InstructionType,
@@ -35,10 +38,16 @@ from pep10.types import ArgumentType, ParseTreeNode
 
 
 class Parser:
-    def __init__(self, buffer: io.StringIO, symbol_table: SymbolTable | None = None):
+    def __init__(
+        self,
+        buffer: io.StringIO,
+        symbol_table: SymbolTable | None = None,
+        macro_registry: MacroRegistry | None = None,
+    ):
         self.lexer = Lexer(buffer)
         self._buffer: deque[TokenType] = deque()
         self.symbol_table = symbol_table if symbol_table else SymbolTable()
+        self.macro_registry = macro_registry if macro_registry else MacroRegistry()
 
     def __iter__(self):
         return self
@@ -79,6 +88,28 @@ class Parser:
         except SyntaxError:
             self.skip_to_next_line()
             return ErrorNode()
+        except KeyError:  # Invalid macro lookup
+            self.skip_to_next_line()
+            return ErrorNode()
+
+    def macro(self, symbol: SymbolEntry | None = None) -> MacroIR | None:
+        if not (macro := self.may_match(Tokens.MACRO)):
+            return None
+        elif symbol is not None:
+            raise SyntaxError("Macros do not support symbol declarations")
+        name = cast(str, macro[1])
+        args: List[ArgumentType] = []
+        if (arg := self.argument()) is not None:
+            args.append(arg)
+            while self.may_match(Tokens.COMMA):
+                arg = self.argument()
+                if arg is None:
+                    raise SyntaxError("Expected argument after comma")
+                args.append(arg)
+        body = self.macro_registry.instantiate(name, *(str(a) for a in args))
+        parse_tree = parse(body, self.symbol_table, self.macro_registry)
+        print(body, parse_tree)
+        return MacroIR(name, args, parse_tree)
 
     def argument(self) -> ArgumentType | None:
         if _hex := self.may_match(Tokens.HEX):
@@ -191,7 +222,7 @@ class Parser:
 
     def code_line(
         self, symbol: SymbolEntry | None = None
-    ) -> UnaryNode | NonUnaryNode | DotCommandIR | None:
+    ) -> UnaryNode | NonUnaryNode | DotCommandIR | MacroNode | None:
         line: ParseTreeNode | None = None
         if nonunary := self.nonunary_instruction(symbol=symbol):
             line = nonunary
@@ -199,6 +230,8 @@ class Parser:
             line = unary
         elif (dot := self.directive(symbol=symbol)) is not None:
             line = dot
+        elif (macro := self.macro(symbol=symbol)) is not None:
+            line = macro
         else:
             return None
 
@@ -229,7 +262,15 @@ class Parser:
         return line
 
 
-def parse(text: str, symbol_table: SymbolTable | None = None) -> List[ParseTreeNode]:
+def parse(
+    text: str,
+    symbol_table: SymbolTable | None = None,
+    macro_registry: MacroRegistry | None = None,
+) -> List[ParseTreeNode]:
     # Remove trailing whitespace while insuring input is \n terminated.
-    parser = Parser(io.StringIO(text.rstrip() + "\n"), symbol_table=symbol_table)
+    parser = Parser(
+        io.StringIO(text.rstrip() + "\n"),
+        symbol_table=symbol_table,
+        macro_registry=macro_registry,
+    )
     return [line for line in parser]

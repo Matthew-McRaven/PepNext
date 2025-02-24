@@ -1,24 +1,33 @@
 import itertools
-from typing import List, Tuple
+from typing import List, Tuple, cast
 
 from pep10.arguments import Identifier
-from pep10.ir import Listable, listing
+from pep10.ir import Listable, listing, MacroIR
 from pep10.symbol import SymbolEntry
 from pep10.types import ParseTreeNode, ArgumentType
 
 
-def generate_code(parse_tree: List[ParseTreeNode]) -> Tuple[List[Listable], List[str]]:
+def generate_code(
+    parse_tree: List[ParseTreeNode], base_address=0
+) -> Tuple[List[Listable], List[str]]:
     errors: List[str] = []
     ir: List[Listable] = []
-    address = 0
+    address = base_address
     for node in parse_tree:
         # TODO: recursively generate code for macros, extending our output with theirs.
-        if isinstance(node, Listable):
+        if isinstance(node, MacroIR) and isinstance(node, Listable):
+            inner_ir, inner_errors = generate_code(node.body, base_address=address)
+            print(inner_ir, inner_errors)
+            ir.append(node.start_comment())
+            ir.extend(inner_ir)
+            ir.append(node.end_comment())
+            errors.extend(inner_errors)
+        elif isinstance(node, Listable):
             ir.append(node)
         else:
             continue
 
-        line: Listable = node
+        line: Listable = cast(Listable, node)
         # The size of the IR line may depend on the address, e.g., .ALIGN
         line.address = address
         # Check for multiply defined symbols, and assign addresses to symbol declarations

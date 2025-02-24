@@ -13,7 +13,7 @@ class Lexer:
         MAYBE_SIGNED, DECIMAL, MAYBE_DOT, DOT, CHAR_OPEN = range(6, 11)
         CHAR_AWAITING_CLOSE, CHAR_EXPECT_ESCAPE, CHAR_EXPECT_HEX0 = range(11, 14)
         CHAR_EXPECT_HEX1, STRING_AWAITING_CLOSE, STRING_EXPECT_ESCAPE = range(14, 17)
-        STRING_EXPECT_HEX0, STRING_EXPECT_HEX1 = range(17, 19)
+        STRING_EXPECT_HEX0, STRING_EXPECT_HEX1, MAYBE_MACRO, MACRO = range(17, 21)
         STOP = -1
 
     def __init__(self, buffer) -> None:
@@ -67,6 +67,8 @@ class Lexer:
                         state = Lexer.States.STRING_AWAITING_CLOSE
                     elif ch == "+" or ch == "-":
                         state, sign = Lexer.States.MAYBE_SIGNED, -1 if ch == "-" else 1
+                    elif ch == "@":
+                        state = Lexer.States.MAYBE_MACRO
                     else:
                         token = (Tokens.INVALID, None)
 
@@ -147,6 +149,21 @@ class Lexer:
                         self.buffer.seek(prev_pos, os.SEEK_SET)
                         state = Lexer.States.STOP
                         token = (Tokens.DOT, "".join(as_str_list))
+
+                case Lexer.States.MAYBE_MACRO:
+                    if ch.isalpha():
+                        as_str_list.append(ch)
+                        state = Lexer.States.MACRO
+                    else:
+                        token = (Tokens.INVALID, None)
+
+                case Lexer.States.MACRO:
+                    if ch.isalnum() or ch == "_":
+                        as_str_list.append(ch)
+                    else:
+                        self.buffer.seek(prev_pos, os.SEEK_SET)
+                        state = Lexer.States.STOP
+                        token = (Tokens.MACRO, "".join(as_str_list))
 
                 case Lexer.States.STRING_AWAITING_CLOSE:
                     if ch == '"':

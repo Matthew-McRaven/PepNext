@@ -54,7 +54,10 @@ INSTRUCTION_TYPES: Dict[str, InstructionType] = {
     # (SUB|AND|OR|XOR)r
     "CPWA": InstructionType.RAAA_all,
     "CPWX": InstructionType.RAAA_all,
-    # (CPW|LDW)r
+    # CPBr
+    "LDWA": InstructionType.RAAA_all,
+    "LDWX": InstructionType.RAAA_all,
+    # LDBr
     "STWA": InstructionType.RAAA_noi,
     "STWX": InstructionType.RAAA_noi,
     # STBr
@@ -82,9 +85,12 @@ BITS: Dict[str, int] = {
     "ADDA": 0x50,
     "ADDX": 0x58,
     # (SUB|AND|OR|XOR)r
-    "CPWA": 0xB0,
-    "CPWX": 0xB8,
-    # (CPW|LDW)r
+    "CPWA": 0xA0,
+    "CPWX": 0xA8,
+    # STBr
+    "LDWA": 0xC0,
+    "LDWX": 0xC8,
+    # LDBr
     "STWA": 0xE0,
     "STWX": 0xE8,
     # STBr

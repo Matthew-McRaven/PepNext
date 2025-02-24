@@ -4,7 +4,7 @@ from typing import List, TypeAlias, Literal
 from pep10.arguments import StringConstant
 from pep10.mnemonics import AddressingMode, INSTRUCTION_TYPES, BITS, as_int
 from pep10.symbol import SymbolEntry
-from pep10.types import ArgumentType, Listable
+from pep10.types import ArgumentType, Listable, ParseTreeNode
 
 
 def source(
@@ -144,6 +144,25 @@ class DotEquateNode:
         return source(".EQUATE", args, self.symbol_decl, self.comment)
 
 
+class MacroNode:
+    def __init__(
+        self,
+        name: str,
+        args: List[ArgumentType],
+        body: List[ParseTreeNode],
+        comment: str | None = None,
+    ):
+        self.symbol_decl: SymbolEntry | None = None
+        self.name = name
+        self.arguments = args
+        self.body = body
+        self.comment = comment
+
+    def source(self) -> str:
+        args = [str(arg) for arg in self.arguments]
+        return source(f"@{self.name}", args, None, self.comment)
+
+
 def listing(to_list: Listable) -> List[str]:
     object_code = to_list.object_code()
     oc_format = lambda oc: "".join(f"{i:02X}" for i in oc)
@@ -256,6 +275,32 @@ class DotEquateIR(DotEquateNode):
 
     def __len__(self) -> int:
         return 0
+
+
+class MacroIR(MacroNode):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.address: int | None = None
+
+    def object_code(self) -> bytearray:
+        ret = bytearray()
+        for line in self.body:
+            if isinstance(line, Listable):
+                ret.extend(line.object_code())
+        return ret
+
+    def __len__(self) -> int:
+        ret = 0
+        for line in self.body:
+            if isinstance(line, Listable):
+                ret += len(line)
+        return ret
+
+    def start_comment(self) -> CommentIR:
+        return CommentIR(self.source().lstrip())
+
+    def end_comment(self) -> CommentIR:
+        return CommentIR(f"End @{self.name}")
 
 
 DotCommandIR: TypeAlias = DotASCIIIR | DotLiteralIR | DotBlockIR | DotEquateIR
