@@ -45,8 +45,8 @@ def test_unary_fail() -> None:
 
 def test_macro() -> None:
     mr = MacroRegistry()
-    mr.insert("HI", 0, ";WORLD")
-    res = parse("@HI \n", macro_registry=mr)
+    mr.insert("HI", 2, ";WORLD")
+    res = parse("@HI 2, 4\n", macro_registry=mr)
     assert type(res[0]) == MacroIR
     item: MacroNode = res[0]
     assert len(item.body) == 1

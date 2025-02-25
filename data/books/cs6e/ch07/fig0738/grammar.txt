@@ -1,12 +1,14 @@
 argument             = HEX | DECIMAL | STRING | CHARACTER | IDENTIFIER
 unary_instr          = IDENTIFIER
 nonunary_instr       = IDENTIFIER argument COMMA IDENTIFIER
-dot                  = DOT argument?
-macro                = MACRO (IDENTIFIER (COMMA IDENTIFIER)*)?
-code_line            = (nonunary_instr | unary_instr | dot | macro) COMMENT?
+dot                  = DOT argument
+macro                = MACRO argument COMMA argument
+code_line            = nonunary_instr | unary_instr | dot
+code_with_comment    = code_line | code_line COMMENT
 statement =
       EMPTY
     | COMMENT EMPTY
-    | code_line EMPTY
-    | SYMBOL code_line EMPTY
-program = statement+
+    | code_with_comment EMPTY
+    | SYMBOL code_with_comment EMPTY
+
+statement is start symbol

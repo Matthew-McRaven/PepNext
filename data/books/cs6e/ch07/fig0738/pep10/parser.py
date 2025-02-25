@@ -98,17 +98,14 @@ class Parser:
         elif symbol is not None:
             raise SyntaxError("Macros do not support symbol declarations")
         name = cast(str, macro[1])
-        args: List[ArgumentType] = []
-        if (arg := self.argument()) is not None:
-            args.append(arg)
-            while self.may_match(Tokens.COMMA):
-                arg = self.argument()
-                if arg is None:
-                    raise SyntaxError("Expected argument after comma")
-                args.append(arg)
-        body = self.macro_registry.instantiate(name, *(str(a) for a in args))
+        if (arg0 := self.argument()) is None:
+            return None
+        self.must_match(Tokens.COMMA)
+        if (arg1 := self.argument()) is None:
+            return None
+        body = self.macro_registry.instantiate(name, str(arg0), str(arg1))
         parse_tree = parse(body, self.symbol_table, self.macro_registry)
-        return MacroIR(name, args, parse_tree)
+        return MacroIR(name, [arg0, arg1], parse_tree)
 
     def argument(self) -> ArgumentType | None:
         if _hex := self.may_match(Tokens.HEX):
