@@ -108,7 +108,6 @@ class Parser:
                 args.append(arg)
         body = self.macro_registry.instantiate(name, *(str(a) for a in args))
         parse_tree = parse(body, self.symbol_table, self.macro_registry)
-        print(body, parse_tree)
         return MacroIR(name, args, parse_tree)
 
     def argument(self) -> ArgumentType | None:

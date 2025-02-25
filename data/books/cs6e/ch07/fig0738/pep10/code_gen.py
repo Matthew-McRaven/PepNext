@@ -19,7 +19,6 @@ def generate_code(
             continue
         elif isinstance(node, MacroIR) and isinstance(node, Listable):
             inner_ir, inner_errors = generate_code(node.body, base_address=address)
-            print(inner_ir, inner_errors)
             ir.append(node.start_comment())
             ir.extend(inner_ir)
             ir.append(node.end_comment())
