@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "fig0738"
+name = "pep10"
 version = "0.1.0"
 description = ""
 authors = ["Matthew McRaven <matthew.mcraven@gmail.com>"]
